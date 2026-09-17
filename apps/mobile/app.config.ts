@@ -50,6 +50,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-apple-authentication',
     'expo-web-browser',
+    'expo-audio',
     [
       'expo-notifications',
       {

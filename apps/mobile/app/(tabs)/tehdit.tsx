@@ -79,8 +79,8 @@ export default function TehditScreen() {
         body: JSON.stringify({}),
       });
       setPreview(res.message);
-      const muted = settings?.officeMute || !settings?.voiceNotifications;
-      await speakThreat(res.message, muted);
+      // Hoparlör testi her zaman ses çalsın (mute ayarını yoksay)
+      await speakThreat(res.message, false, { forceSpeak: true });
     } catch (e: any) {
       Alert.alert('Hata', e.message);
     }

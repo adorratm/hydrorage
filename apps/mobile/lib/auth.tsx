@@ -10,6 +10,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 import Constants from 'expo-constants';
 import { api, clearSession, getStoredUser, saveSession } from '@/lib/api';
 
@@ -44,11 +45,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [appleAvailable, setAppleAvailable] = useState(false);
   const extra = oauthExtra();
 
+  const webClientId = extra.googleClientIdWeb?.trim() || undefined;
+  const iosClientId = extra.googleClientIdIos?.trim() || undefined;
+  const androidClientId = extra.googleClientIdAndroid?.trim() || undefined;
+
+  // Web: Google Console'da Authorized redirect URI olarak origin eklenmeli
+  // (örn. http://localhost:8081). Native: app scheme.
+  const redirectUri =
+    Platform.OS === 'web'
+      ? typeof window !== 'undefined'
+        ? window.location.origin
+        : 'http://localhost:8081'
+      : makeRedirectUri({
+          scheme: 'hydrorage',
+          path: 'oauthredirect',
+          preferLocalhost: true,
+        });
+
   const [googleRequest, , googlePromptAsync] = Google.useIdTokenAuthRequest({
-    iosClientId: extra.googleClientIdIos || undefined,
-    androidClientId: extra.googleClientIdAndroid || undefined,
-    webClientId: extra.googleClientIdWeb || undefined,
+    iosClientId,
+    androidClientId,
+    webClientId,
+    clientId: Platform.OS === 'web' ? webClientId : undefined,
+    selectAccount: true,
+    redirectUri,
   });
+
+  useEffect(() => {
+    if (__DEV__) {
+      console.log('[Google OAuth]', {
+        platform: Platform.OS,
+        redirectUri,
+        webClientId: webClientId
+          ? `${webClientId.slice(0, 28)}…`
+          : '(MISSING)',
+        hasIos: !!iosClientId,
+        hasAndroid: !!androidClientId,
+      });
+    }
+  }, [redirectUri, webClientId, iosClientId, androidClientId]);
 
   useEffect(() => {
     getStoredUser()
@@ -78,6 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signInWithGoogle = useCallback(async () => {
+    if (Platform.OS === 'web' && !webClientId) {
+      throw new Error(
+        'EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB eksik — apps/mobile/.env',
+      );
+    }
     const result = await googlePromptAsync();
     if (result.type !== 'success') {
       throw new Error('Google girişi iptal edildi');
@@ -98,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ idToken }),
     });
     await applySession(data);
-  }, [googlePromptAsync, applySession]);
+  }, [googlePromptAsync, applySession, webClientId]);
 
   const signInWithApple = useCallback(async () => {
     if (Platform.OS !== 'ios') {
@@ -113,7 +153,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!credential.identityToken) {
       throw new Error('Apple identityToken alınamadı');
     }
-    const fullName = [credential.fullName?.givenName, credential.fullName?.familyName]
+    const fullName = [
+      credential.fullName?.givenName,
+      credential.fullName?.familyName,
+    ]
       .filter(Boolean)
       .join(' ')
       .trim();
@@ -141,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       loading,
-      googleReady: !!googleRequest,
+      googleReady: !!googleRequest && (Platform.OS !== 'web' || !!webClientId),
       appleAvailable,
       signInWithGoogle,
       signInWithApple,
@@ -151,6 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       loading,
       googleRequest,
+      webClientId,
       appleAvailable,
       signInWithGoogle,
       signInWithApple,

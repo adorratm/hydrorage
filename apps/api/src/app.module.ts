@@ -16,6 +16,7 @@ import { StatsModule } from '@/stats/stats.module';
 import { DashboardModule } from '@/dashboard/dashboard.module';
 import { AdminModule } from '@/admin/admin.module';
 import { LandingModule } from '@/landing/landing.module';
+import { TtsModule } from '@/tts/tts.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LandingModule } from '@/landing/landing.module';
     DashboardModule,
     AdminModule,
     LandingModule,
+    TtsModule,
   ],
 })
 export class AppModule {}

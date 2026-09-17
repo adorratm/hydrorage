@@ -56,7 +56,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
   meta: {
     title: 'HydroRage — Su içmezsen küfür yerin',
     description:
-      'HydroRage: hidrasyon takibi, sesli tehdit ve haftalık utanç karnesi. Su içmezsen küfür yerin.',
+      'HydroRage: hidrasyon takibi, sesli tehdit ve haftalık utanç karnesi. Su içmezsen küfür yersin.',
   },
   nav: {
     brand: 'HydroRage',
@@ -65,7 +65,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
   },
   hero: {
     brand: 'HydroRage',
-    headline: 'Su içmezsen küfür yerin.',
+    headline: 'Su içmezsen küfür yersin.',
     sub: 'Hidrasyon takibi, sesli tehdit ve haftalık utanç karnesi. Su hedefini kaçırma — karakterler hatırlatır, üstelik nazik değiller.',
     primaryCta: { label: 'Uygulamayı indir', href: '#indir' },
     secondaryCta: {

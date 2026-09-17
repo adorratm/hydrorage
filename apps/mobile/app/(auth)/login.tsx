@@ -53,7 +53,7 @@ export default function LoginScreen() {
         <Ionicons name="water" size={48} color={colors.primaryContainer} />
         <Text style={styles.title}>HydroRage</Text>
         <Text style={styles.sub}>
-          Su içmezsen küfür yerin. Google ile gir
+          Su içmezsen küfür yersin. Google ile gir
           {Platform.OS === 'ios' ? ', iPhone’da Apple da olur' : ''}.
         </Text>
       </View>

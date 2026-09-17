@@ -1779,6 +1779,8 @@ __metadata:
     "@types/react": "npm:~19.2.4"
     expo: "npm:~57.0.23"
     expo-apple-authentication: "npm:^57.0.2"
+    expo-asset: "npm:~57.0.8"
+    expo-audio: "npm:~57.0.5"
     expo-auth-session: "npm:^57.0.12"
     expo-constants: "npm:~57.0.18"
     expo-crypto: "npm:^57.0.3"
@@ -1789,7 +1791,6 @@ __metadata:
     expo-router: "npm:~57.0.21"
     expo-secure-store: "npm:~57.0.4"
     expo-sharing: "npm:~57.0.20"
-    expo-speech: "npm:~57.0.3"
     expo-splash-screen: "npm:~57.0.9"
     expo-status-bar: "npm:~57.0.1"
     expo-symbols: "npm:~57.0.3"
@@ -5545,7 +5546,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-asset@npm:~57.0.17":
+"expo-asset@npm:~57.0.17, expo-asset@npm:~57.0.8":
   version: 57.0.17
   resolution: "expo-asset@npm:57.0.17"
   dependencies:
@@ -5556,6 +5557,18 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/790623f1ac8a8ddab46d835c04bed43223e2235acd6a42f111f91527b723b3f9905afdc7c0e77ac71b14094ae81fee3958dd6a9199282b086c7601b8a3967c86
+  languageName: node
+  linkType: hard
+
+"expo-audio@npm:~57.0.5":
+  version: 57.0.5
+  resolution: "expo-audio@npm:57.0.5"
+  peerDependencies:
+    expo: "*"
+    expo-asset: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/16ccdf92608282c3877aa69aed72dff810fe0773fcfed0aa604ed8229c2ededaa0a091ef0823f15fc8cbd52ec9c685bae88e921a1c6c977a75c68d5363a2ccaf
   languageName: node
   linkType: hard
 
@@ -5813,15 +5826,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/035851b3e044d9f5870d7327ab450bdc9e753f9adcbfdfc9d2e36677b26699fa1f33f26de9b6b328821457465ec9ca6bd017efeaf67a28248835abfb55480349
-  languageName: node
-  linkType: hard
-
-"expo-speech@npm:~57.0.3":
-  version: 57.0.3
-  resolution: "expo-speech@npm:57.0.3"
-  peerDependencies:
-    expo: "*"
-  checksum: 10c0/0a75c9cb18ece3184f813551346af68248ea2e84aeb194405f5f3a214f7d783fa61557aa10729fd2841f58e3667ad3d28f202e020a2c9b9309e2f2636f3e466a
   languageName: node
   linkType: hard
 
