@@ -1,0 +1,24 @@
+{
+  "name": "hydrorage",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "api": "yarn workspace @hydrorage/api start:dev",
+    "api:build": "yarn workspace @hydrorage/api build",
+    "mobile": "yarn workspace @hydrorage/mobile start",
+    "mobile:android": "yarn workspace @hydrorage/mobile android",
+    "mobile:ios": "yarn workspace @hydrorage/mobile ios",
+    "db:migrate": "yarn workspace @hydrorage/api db:migrate",
+    "db:seed": "yarn workspace @hydrorage/api db:seed",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down"
+  },
+  "volta": {
+    "node": "26.9.0",
+    "yarn": "4.18.0"
+  },
+  "packageManager": "yarn@4.18.0"
+}
