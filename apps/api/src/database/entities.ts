@@ -472,6 +472,21 @@ export class RoutineLog {
   }
 }
 
+@Entity('LandingPage')
+export class LandingPage {
+  @PrimaryColumn('text')
+  id!: string;
+
+  @Column({ type: 'jsonb' })
+  content!: Record<string, unknown>;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt!: Date;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt!: Date;
+}
+
 export const entities = [
   User,
   RefreshToken,
@@ -482,4 +497,5 @@ export const entities = [
   ThreatEvent,
   Routine,
   RoutineLog,
+  LandingPage,
 ];

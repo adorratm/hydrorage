@@ -1,6 +1,14 @@
 # HydroRage
 
-Küfürlü hidrasyon takip uygulaması — Expo (iOS/Android) + NestJS 12 + PostgreSQL.
+Küfürlü hidrasyon takip uygulaması — Expo (iOS/Android) + NestJS 12 + PostgreSQL + web landing + admin.
+
+## Domainler
+
+| Yüzey | Domain | Lokal |
+|---|---|---|
+| Landing | https://hydrorage.com | `yarn web` → `:5173` |
+| Admin | https://admin.hydrorage.com | `yarn admin` → `:5174` |
+| API | https://api.hydrorage.com | `yarn api` → `:3000` |
 
 ## Gereksinimler
 
@@ -30,6 +38,8 @@ yarn api
 | PgBouncer | `6432` | Connection pool (runtime `DATABASE_URL`) |
 | Redis | `6379` | Socket.IO adapter + BullMQ (`REDIS_URL`) |
 | API | `3000` | NestJS · WS `/realtime` · Bull Board `/api/admin/queues` |
+| Landing | `5173` | `@hydrorage/web` |
+| Admin | `5174` | `@hydrorage/admin` |
 
 TypeORM: runtime PgBouncer (`DATABASE_URL` → `:6432`), migration/seed `DIRECT_URL` ile Postgres’e (`:5434`).
 
@@ -39,18 +49,29 @@ SQL şema: `apps/api/migrations` · seed: `yarn db:seed`
 
 ## Auth
 
-Yalnızca sosyal giriş:
-- **Google** — Android + iOS
+### Mobil
+- **Google** — Android + iOS (`idToken` → `POST /api/auth/google`)
 - **Apple** — yalnızca iOS (`expo-apple-authentication`)
 
-E-posta/şifre kaydı yok. Google Client ID’lerini `apps/mobile/app.json` → `extra` ve `apps/api/.env` içine yaz.
+### Web admin (OAuth redirect)
+1. Admin → Google: `GET /api/auth/google/start`
+2. Google → API: `GET /api/auth/google/callback`
+3. API → Admin: `https://admin.hydrorage.com/auth/callback?accessToken=…&refreshToken=…`
+
+Google Cloud **Web** client redirect URI:
+- Prod: `https://api.hydrorage.com/api/auth/google/callback`
+- Lokal: `http://localhost:3000/api/auth/google/callback`
 
 | Env | Açıklama |
 |---|---|
 | `GOOGLE_CLIENT_ID_IOS` / `ANDROID` / `WEB` | ID token audience doğrulama |
+| `GOOGLE_CLIENT_SECRET` | Web OAuth code exchange |
+| `GOOGLE_REDIRECT_URI` | Callback URL (yukarıdaki) |
+| `ADMIN_APP_URL` | Admin origin (`https://admin.hydrorage.com`) |
+| `ADMIN_EMAILS` | Virgülle ayrılmış allowlist (boşsa herkes) |
 | `APPLE_CLIENT_ID` | Bundle id (`com.hydrorage.app`) |
 
-API: `POST /api/auth/google` `{ idToken }` · `POST /api/auth/apple` `{ identityToken, fullName?, email? }`
+E-posta/şifre kaydı yok. Google Client ID’lerini `apps/mobile/app.json` → `extra` ve `apps/api/.env` içine yaz.
 
 ## Özellikler
 
@@ -60,6 +81,8 @@ API: `POST /api/auth/google` `{ idToken }` · `POST /api/auth/apple` `{ identity
 - Kullanıcı tehdit şablonları (CRUD)
 - Rutin planlayıcı + bildirimler
 - Haftalık utanç karnesi + paylaşım
+- Landing + admin paneli (Google OAuth)
+- Landing CMS: `GET /api/landing` (public) · `PUT /api/admin/landing` (admin)
 
 ## NestJS build (Rspack)
 
@@ -72,6 +95,8 @@ yarn workspace @hydrorage/api build
 ```
 apps/api      NestJS + TypeORM (EntityManager)
 apps/mobile  Expo SDK 57
+apps/web     Landing (Vite) → hydrorage.com
+apps/admin   Admin (Vite) → admin.hydrorage.com
 packages/shared  Ortak sabitler
 ```
 

@@ -14,6 +14,8 @@ import { RoutinesModule } from '@/routines/routines.module';
 import { ThreatsModule } from '@/threats/threats.module';
 import { StatsModule } from '@/stats/stats.module';
 import { DashboardModule } from '@/dashboard/dashboard.module';
+import { AdminModule } from '@/admin/admin.module';
+import { LandingModule } from '@/landing/landing.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { DashboardModule } from '@/dashboard/dashboard.module';
     ThreatsModule,
     StatsModule,
     DashboardModule,
+    AdminModule,
+    LandingModule,
   ],
 })
 export class AppModule {}

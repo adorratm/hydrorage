@@ -1,12 +1,15 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { createId } from '@paralleldrive/cuid2';
+import { DEFAULT_LANDING_CONTENT } from '@hydrorage/shared';
 import {
   Character,
+  LandingPage,
   ThreatTemplate,
   entities,
 } from './entities';
 import { ProfanityLevel } from './enums';
+import { LANDING_PAGE_ID } from '../landing/landing.service';
 
 async function main() {
   const url =
@@ -165,6 +168,17 @@ async function main() {
         }),
       );
     }
+  }
+
+  const landing = await em.findOneBy(LandingPage, { id: LANDING_PAGE_ID });
+  if (!landing) {
+    await em.save(
+      em.create(LandingPage, {
+        id: LANDING_PAGE_ID,
+        content: DEFAULT_LANDING_CONTENT as unknown as Record<string, unknown>,
+      }),
+    );
+    console.log('Landing page içeriği seed edildi.');
   }
 
   console.log('HydroRage TypeORM seed tamamlandı.');

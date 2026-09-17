@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectEntityManager } from '@nestjs/typeorm';
@@ -15,16 +19,21 @@ import {
 import { AuthProvider } from '@/database/enums';
 import { AppleAuthDto, GoogleAuthDto } from '@/auth/auth.dto';
 
+type GoogleOAuthState = {
+  nonce: string;
+  returnTo: string;
+};
+
 @Injectable()
 export class AuthService {
-  private readonly googleClient: OAuth2Client;
+  private readonly googleVerifyClient: OAuth2Client;
 
   constructor(
     @InjectEntityManager() private readonly em: EntityManager,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
   ) {
-    this.googleClient = new OAuth2Client();
+    this.googleVerifyClient = new OAuth2Client();
   }
 
   async google(dto: GoogleAuthDto) {
@@ -36,7 +45,7 @@ export class AuthService {
     }
     let payload;
     try {
-      const ticket = await this.googleClient.verifyIdToken({
+      const ticket = await this.googleVerifyClient.verifyIdToken({
         idToken: dto.idToken,
         audience: audiences,
       });
@@ -56,6 +65,115 @@ export class AuthService {
       displayName: payload.name || payload.email.split('@')[0],
       avatarUrl: payload.picture,
     });
+  }
+
+  async getGoogleAuthUrl(returnTo?: string) {
+    const client = this.googleOAuthClient();
+    const state = await this.jwt.signAsync(
+      {
+        nonce: randomUUID(),
+        returnTo: this.resolveReturnTo(returnTo),
+      } satisfies GoogleOAuthState,
+      {
+        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '10m',
+      },
+    );
+
+    return client.generateAuthUrl({
+      access_type: 'online',
+      prompt: 'select_account',
+      scope: ['openid', 'email', 'profile'],
+      state,
+      include_granted_scopes: true,
+    });
+  }
+
+  async handleGoogleCallback(code?: string, state?: string) {
+    if (!code || !state) {
+      throw new BadRequestException('Google callback code/state eksik');
+    }
+
+    let parsed: GoogleOAuthState;
+    try {
+      parsed = await this.jwt.verifyAsync<GoogleOAuthState>(state, {
+        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Google OAuth state geçersiz');
+    }
+
+    const client = this.googleOAuthClient();
+    let idToken: string | undefined | null;
+    try {
+      const { tokens } = await client.getToken(code);
+      idToken = tokens.id_token;
+    } catch {
+      throw new UnauthorizedException('Google authorization code geçersiz');
+    }
+
+    if (!idToken) {
+      throw new UnauthorizedException('Google idToken alınamadı');
+    }
+
+    const session = await this.google({ idToken });
+    return {
+      ...session,
+      returnTo: parsed.returnTo,
+    };
+  }
+
+  buildAdminRedirectUrl(
+    returnTo: string,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const url = new URL('/auth/callback', returnTo);
+    url.searchParams.set('accessToken', tokens.accessToken);
+    url.searchParams.set('refreshToken', tokens.refreshToken);
+    return url.toString();
+  }
+
+  isAdminEmail(email: string) {
+    const raw = this.config.get<string>('ADMIN_EMAILS') || '';
+    const allow = raw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    if (!allow.length) return true;
+    return allow.includes(email.toLowerCase());
+  }
+
+  private googleOAuthClient() {
+    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID_WEB');
+    const clientSecret = this.config.get<string>('GOOGLE_CLIENT_SECRET');
+    const redirectUri =
+      this.config.get<string>('GOOGLE_REDIRECT_URI') ||
+      'http://localhost:3000/api/auth/google/callback';
+
+    if (!clientId || !clientSecret) {
+      throw new BadRequestException(
+        'GOOGLE_CLIENT_ID_WEB ve GOOGLE_CLIENT_SECRET gerekli',
+      );
+    }
+
+    return new OAuth2Client(clientId, clientSecret, redirectUri);
+  }
+
+  private resolveReturnTo(returnTo?: string) {
+    const adminAppUrl =
+      this.config.get<string>('ADMIN_APP_URL') || 'http://localhost:5174';
+    if (!returnTo) return adminAppUrl;
+
+    try {
+      const target = new URL(returnTo);
+      const allowed = new URL(adminAppUrl);
+      if (target.origin !== allowed.origin) {
+        return adminAppUrl;
+      }
+      return target.origin;
+    } catch {
+      return adminAppUrl;
+    }
   }
 
   async apple(dto: AppleAuthDto) {
