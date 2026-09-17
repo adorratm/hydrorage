@@ -45,9 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const extra = oauthExtra();
 
   const [googleRequest, , googlePromptAsync] = Google.useIdTokenAuthRequest({
-    iosClientId: extra.googleClientIdIos,
-    androidClientId: extra.googleClientIdAndroid,
-    webClientId: extra.googleClientIdWeb || extra.googleClientIdIos,
+    iosClientId: extra.googleClientIdIos || undefined,
+    androidClientId: extra.googleClientIdAndroid || undefined,
+    webClientId: extra.googleClientIdWeb || undefined,
   });
 
   useEffect(() => {

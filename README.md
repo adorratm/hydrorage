@@ -85,7 +85,7 @@ Authorized JavaScript origins (örnek):
 | `ADMIN_EMAILS` | Virgülle ayrılmış allowlist (boşsa herkes) |
 | `APPLE_CLIENT_ID` | Bundle id (`com.hydrorage.app`) |
 
-E-posta/şifre kaydı yok. Google Client ID’lerini `apps/mobile/app.json` → `extra` ve `apps/api/.env` içine yaz.
+E-posta/şifre kaydı yok. Google Client ID’lerini `apps/mobile/.env` (`EXPO_PUBLIC_GOOGLE_CLIENT_ID_*`) ve `apps/api/.env` içine yaz — `app.json`’a koyma (public repo).
 
 ## Özellikler
 
