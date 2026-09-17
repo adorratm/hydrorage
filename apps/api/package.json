@@ -31,6 +31,7 @@
     "bullmq": "^6.3.6",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "edge-tts-universal": "^1.4.0",
     "google-auth-library": "^11.1.0",
     "ioredis": "6.0.0",
     "jose": "^6.2.12",

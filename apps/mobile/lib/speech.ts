@@ -84,13 +84,16 @@ async function playNativeMp3(base64: string): Promise<void> {
   });
 }
 
-async function speakViaApi(text: string) {
+async function speakViaApi(text: string, characterSlug?: string) {
   if (__DEV__) {
-    console.log('[TTS] API isteği…', text.slice(0, 40));
+    console.log('[TTS] API isteği…', text.slice(0, 40), characterSlug ?? '');
   }
   const data = await api<{ mimeType: string; audioBase64: string }>('/tts', {
     method: 'POST',
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({
+      text,
+      ...(characterSlug ? { characterSlug } : {}),
+    }),
   });
   if (!data.audioBase64) {
     throw new Error('TTS boş yanıt döndü');
@@ -110,7 +113,7 @@ async function speakViaApi(text: string) {
 export async function speakThreat(
   text: string,
   muted = false,
-  opts?: { forceSpeak?: boolean },
+  opts?: { forceSpeak?: boolean; characterSlug?: string },
 ) {
   const forceSpeak = opts?.forceSpeak === true;
   if (muted && !forceSpeak) {
@@ -126,7 +129,7 @@ export async function speakThreat(
   }
 
   try {
-    await speakViaApi(text);
+    await speakViaApi(text, opts?.characterSlug);
   } catch (e) {
     console.warn('[TTS] API başarısız', e);
     Alert.alert(

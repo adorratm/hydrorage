@@ -85,7 +85,37 @@ export const CHARACTER_SLUGS = {
   ANGRY_MOM: 'sinirli-balkan-annesi',
   DRACULA: 'dracula',
   CORPORATE: 'toksik-kurumsal-yonetici',
+  SERGEANT: 'cavus-komutan',
+  TAXI: 'taksi-soforu',
+  TOXIC_EX: 'zehirli-ex',
+  ER_DOCTOR: 'acil-doktor',
+  NIGHT_GUARD: 'gece-bekcisi',
 } as const;
+
+/** Örnek dinle metinleri (karakter sesi / üslubu) */
+export const CHARACTER_SAMPLE_LINES: Record<string, string> = {
+  [CHARACTER_SLUGS.NEIGHBOR_BRO]:
+    'Anasını siktiğimin kurusu, kalk o suyu iç lan! Böbreklerin çatır çatır kuruyor!',
+  [CHARACTER_SLUGS.FITNESS_COACH]:
+    'Kasların su istiyor lan, susuz kas ölü kas! 500 ml dik şimdi!',
+  [CHARACTER_SLUGS.ANGRY_MOM]:
+    'Ben sana demedim mi iç diye? Böbreklerin taş dökecek, utan biraz!',
+  [CHARACTER_SLUGS.CORPORATE]:
+    'Q3 hidrasyon KPI’ın kırmızı. Action item: 300 ml su, deadline şimdi.',
+  [CHARACTER_SLUGS.DRACULA]:
+    'Kanım değil suyun eksik… O bardağı boş bırakırsan gece seni bulurum.',
+  [CHARACTER_SLUGS.SERGEANT]:
+    'DİKKAT! Emir: 300 ml su. İtiraz edenin götüne tekme. Uygula!',
+  [CHARACTER_SLUGS.TAXI]:
+    'Ulan trafik gibi sıkışmışsın susuzluktan! Korna: SU İÇ LAN!',
+  [CHARACTER_SLUGS.TOXIC_EX]:
+    'Hâlâ aynı tembelsin… Su içmeyi bile başaramıyorsun, şaşırdım mı? Hayır.',
+  [CHARACTER_SLUGS.ER_DOCTOR]:
+    'Klinik not: dehidre. Tedavi oral su, 500 ml, derhal.',
+  [CHARACTER_SLUGS.NIGHT_GUARD]:
+    'Saat 03:00. Nöbet: su borcun var. Kalk, yudumla, tekrar uyu.',
+};
+
 
 export function computeNetMl(type: DrinkType, amountMl: number): {
   grossMl: number;
@@ -107,5 +137,14 @@ export function fillTemplate(
     vars[key] !== undefined ? String(vars[key]) : `{{${key}}}`,
   );
 }
+
+/** "Ad Soyad" → sadece ilk ad (küfür şablonları için) */
+export function firstName(displayName: string | null | undefined): string {
+  const raw = (displayName ?? '').trim();
+  if (!raw) return 'dostum';
+  const first = raw.split(/\s+/)[0] ?? raw;
+  return first || 'dostum';
+}
+
 
 export * from './landing';

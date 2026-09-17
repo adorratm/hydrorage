@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { CHARACTER_SAMPLE_LINES } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -12,6 +13,7 @@ import { colors } from '@/constants/theme';
 
 type Character = {
   id: string;
+  slug: string;
   name: string;
   description: string;
   badge: string | null;
@@ -20,6 +22,13 @@ type Character = {
   recordingCount: number;
   unlocked: boolean;
 };
+
+function sampleFor(c: Character) {
+  return (
+    CHARACTER_SAMPLE_LINES[c.slug] ??
+    `${c.name} diyor ki: Kalk suyu iç, tembellik etme!`
+  );
+}
 
 export default function KarakterlerScreen() {
   const router = useRouter();
@@ -45,7 +54,8 @@ export default function KarakterlerScreen() {
     },
   });
 
-  const active = data?.find((c) => c.id === settings?.activeCharacterId) ?? data?.[0];
+  const active =
+    data?.find((c) => c.id === settings?.activeCharacterId) ?? data?.[0];
 
   return (
     <Screen
@@ -76,18 +86,18 @@ export default function KarakterlerScreen() {
           <PrimaryButton
             label="Son Azarı Dinle"
             onPress={() =>
-              speakThreat(
-                'Kalk o suyu iç lan artık! Böbreklerin çöl kumuna döndü kurumuşsun!',
-              )
+              speakThreat(sampleFor(active), false, {
+                characterSlug: active.slug,
+              })
             }
             style={{ marginTop: 12 }}
           />
         </Card>
       )}
 
-      <Text style={styles.section}>Karakter Havuzu</Text>
+      <Text style={styles.section}>Ses / Karakter Havuzu</Text>
       {(data ?? []).map((c) => (
-        <Card key={c.id} style={{ opacity: c.unlocked ? 1 : 0.55 }}>
+        <Card key={c.id}>
           <Text style={styles.charName}>{c.name}</Text>
           <Text style={styles.body}>{c.description}</Text>
           <View style={styles.actions}>
@@ -95,13 +105,12 @@ export default function KarakterlerScreen() {
               label="Örnek Dinle"
               variant="secondary"
               onPress={() =>
-                speakThreat(`${c.name} diyor ki: Kalk suyu iç, tembellik etme!`)
+                speakThreat(sampleFor(c), false, { characterSlug: c.slug })
               }
               style={{ flex: 1 }}
             />
             <PrimaryButton
-              label={c.unlocked ? 'Seç & Uygula' : 'Kilitli'}
-              disabled={!c.unlocked}
+              label="Seç & Uygula"
               onPress={() => select.mutate(c.id)}
               style={{ flex: 1 }}
             />
@@ -182,7 +191,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 8,
   },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
+  metricLabel: {
+    color: colors.onSurfaceVariant,
+    fontSize: 10,
+    fontWeight: '700',
+  },
   miniVal: { color: colors.onSurface, fontWeight: '800', marginTop: 2 },
   section: { color: colors.primary, fontSize: 16, fontWeight: '800' },
   charName: { color: colors.onSurface, fontWeight: '800', fontSize: 15 },

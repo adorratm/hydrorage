@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { TtsService } from '@/tts/tts.service';
 
@@ -8,6 +8,11 @@ class TtsDto {
   @MinLength(1)
   @MaxLength(500)
   text!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  characterSlug?: string;
 }
 
 @Controller('tts')
@@ -17,7 +22,10 @@ export class TtsController {
 
   @Post()
   async speak(@Body() dto: TtsDto) {
-    const audio = await this.tts.synthesizeTurkish(dto.text);
+    const audio = await this.tts.synthesizeTurkish(
+      dto.text,
+      dto.characterSlug,
+    );
     return {
       mimeType: 'audio/mpeg',
       audioBase64: audio.toString('base64'),

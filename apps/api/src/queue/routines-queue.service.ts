@@ -11,7 +11,7 @@ import {
 import { ThreatStatus } from '@/database/enums';
 import { TemplatesService } from '@/templates/templates.service';
 import { RealtimeService } from '@/realtime/realtime.service';
-import { fillTemplate } from '@/common/hydration';
+import { fillTemplate, firstName } from '@/common/hydration';
 import { QUEUE_TOKENS, REDIS, ROUTINES_QUEUE } from '@/redis/redis.tokens';
 import { RoutineSweepJob } from '@/queue/queue.types';
 
@@ -76,7 +76,7 @@ export class RoutinesQueueService implements OnModuleDestroy {
           templateId: picked.templateId,
           characterId: picked.characterId,
           message: fillTemplate(picked.text, {
-            name: user.displayName,
+            name: firstName(user.displayName),
             debtMl: log.routine?.amountMl ?? 300,
           }),
           status: ThreatStatus.MISSED,

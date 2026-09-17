@@ -12,7 +12,7 @@ import { ThreatStatus } from '@/database/enums';
 import { TemplatesService } from '@/templates/templates.service';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
-import { fillTemplate } from '@/common/hydration';
+import { fillTemplate, firstName } from '@/common/hydration';
 import { RealtimeService } from '@/realtime/realtime.service';
 import { ThreatsQueueService } from '@/queue/threats-queue.service';
 
@@ -68,7 +68,7 @@ export class ThreatsController {
     }
 
     return {
-      message: fillTemplate(text, { name: me.displayName, debtMl: 500 }),
+      message: fillTemplate(text, { name: firstName(me.displayName), debtMl: 500 }),
       templateId,
       characterId,
     };
@@ -84,7 +84,7 @@ export class ThreatsController {
     const me = await this.em.findOneByOrFail(User, { id: user.userId });
     const picked = await this.templates.pickForUser(user.userId);
     const message = fillTemplate(picked.text, {
-      name: me.displayName,
+      name: firstName(me.displayName),
       debtMl: 300,
     });
     const threat = await this.em.save(

@@ -14,7 +14,7 @@ import {
 import { RoutineKind, ThreatStatus } from '@/database/enums';
 import { CreateRoutineDto, UpdateRoutineDto } from '@/routines/routines.dto';
 import { TemplatesService } from '@/templates/templates.service';
-import { fillTemplate } from '@/common/hydration';
+import { fillTemplate, firstName } from '@/common/hydration';
 import { RealtimeService } from '@/realtime/realtime.service';
 
 @Injectable()
@@ -115,7 +115,7 @@ export class RoutinesService {
             templateId: picked.templateId,
             characterId: picked.characterId,
             message: fillTemplate(picked.text, {
-              name: user.displayName,
+              name: firstName(user.displayName),
               debtMl: log.routine.amountMl,
             }),
             status: ThreatStatus.MISSED,

@@ -41,3 +41,10 @@ export function fillTemplate(
     vars[key] !== undefined ? String(vars[key]) : `{{${key}}}`,
   );
 }
+
+/** "Ad Soyad" → sadece ilk ad */
+export function firstName(displayName: string | null | undefined): string {
+  const raw = (displayName ?? '').trim();
+  if (!raw) return 'dostum';
+  return raw.split(/\s+/)[0] || 'dostum';
+}

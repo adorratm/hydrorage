@@ -30,11 +30,12 @@ type Settings = {
   remindElectrolyte: boolean;
   remindWalk: boolean;
   waterIntervalMinutes: number;
-  activeCharacter?: { id: string; name: string } | null;
+  activeCharacter?: { id: string; name: string; slug?: string } | null;
 };
 
 type Character = {
   id: string;
+  slug: string;
   name: string;
   unlocked: boolean;
 };
@@ -79,8 +80,13 @@ export default function TehditScreen() {
         body: JSON.stringify({}),
       });
       setPreview(res.message);
-      // Hoparlör testi her zaman ses çalsın (mute ayarını yoksay)
-      await speakThreat(res.message, false, { forceSpeak: true });
+      const slug =
+        settings?.activeCharacter?.slug ??
+        characters?.find((c) => c.id === settings?.activeCharacterId)?.slug;
+      await speakThreat(res.message, false, {
+        forceSpeak: true,
+        characterSlug: slug,
+      });
     } catch (e: any) {
       Alert.alert('Hata', e.message);
     }
@@ -155,16 +161,14 @@ export default function TehditScreen() {
             </Pressable>
           ))}
         </View>
-        <Text style={[styles.metricLabel, { marginTop: 12 }]}>Karakter</Text>
+        <Text style={[styles.metricLabel, { marginTop: 12 }]}>Ses / Karakter</Text>
         {(characters ?? []).map((c) => (
           <Pressable
             key={c.id}
-            disabled={!c.unlocked}
             onPress={() => patch({ activeCharacterId: c.id })}
             style={[
               styles.charRow,
               settings?.activeCharacterId === c.id && styles.charActive,
-              !c.unlocked && { opacity: 0.45 },
             ]}
           >
             <Ionicons
@@ -177,7 +181,6 @@ export default function TehditScreen() {
               color={colors.primaryContainer}
             />
             <Text style={styles.charName}>{c.name}</Text>
-            {!c.unlocked && <Text style={styles.lock}>Kilitli</Text>}
           </Pressable>
         ))}
       </Card>
@@ -313,9 +316,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(98,114,164,0.25)',
   },
-  charActive: { backgroundColor: 'rgba(139,233,253,0.08)' },
+  charActive: { backgroundColor: 'rgba(189,147,249,0.12)' },
   charName: { color: colors.onSurface, flex: 1, fontWeight: '600' },
-  lock: { color: colors.muted, fontSize: 10, fontWeight: '700' },
   preview: { color: colors.onSurface, marginVertical: 10, fontSize: 13 },
   checkRow: {
     flexDirection: 'row',
