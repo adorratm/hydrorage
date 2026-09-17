@@ -6,9 +6,18 @@ Küfürlü hidrasyon takip uygulaması — Expo (iOS/Android) + NestJS 12 + Post
 
 | Yüzey | Domain | Lokal |
 |---|---|---|
-| Landing | https://hydrorage.com | `yarn web` → `:5173` |
-| Admin | https://admin.hydrorage.com | `yarn admin` → `:5174` |
-| API | https://api.hydrorage.com | `yarn api` → `:3000` |
+| Landing | https://hydrorage.com.tr | `yarn web` → `:5173` |
+| Admin | https://admin.hydrorage.com.tr | `yarn admin` → `:5174` |
+| API | https://api.hydrorage.com.tr | `yarn api` → `:3000` |
+
+Cloudflare DNS (örnek):
+
+| Tip | Ad | Hedef |
+|---|---|---|
+| A / CNAME | `@` | Landing host |
+| CNAME | `www` | `hydrorage.com.tr` |
+| CNAME | `api` | API host |
+| CNAME | `admin` | Admin host |
 
 ## Gereksinimler
 
@@ -56,18 +65,23 @@ SQL şema: `apps/api/migrations` · seed: `yarn db:seed`
 ### Web admin (OAuth redirect)
 1. Admin → Google: `GET /api/auth/google/start`
 2. Google → API: `GET /api/auth/google/callback`
-3. API → Admin: `https://admin.hydrorage.com/auth/callback?accessToken=…&refreshToken=…`
+3. API → Admin: `https://admin.hydrorage.com.tr/auth/callback?accessToken=…&refreshToken=…`
 
 Google Cloud **Web** client redirect URI:
-- Prod: `https://api.hydrorage.com/api/auth/google/callback`
+- Prod: `https://api.hydrorage.com.tr/api/auth/google/callback`
 - Lokal: `http://localhost:3000/api/auth/google/callback`
+
+Authorized JavaScript origins (örnek):
+- `https://admin.hydrorage.com.tr`
+- `https://hydrorage.com.tr`
 
 | Env | Açıklama |
 |---|---|
 | `GOOGLE_CLIENT_ID_IOS` / `ANDROID` / `WEB` | ID token audience doğrulama |
 | `GOOGLE_CLIENT_SECRET` | Web OAuth code exchange |
 | `GOOGLE_REDIRECT_URI` | Callback URL (yukarıdaki) |
-| `ADMIN_APP_URL` | Admin origin (`https://admin.hydrorage.com`) |
+| `ADMIN_APP_URL` | Admin origin (`https://admin.hydrorage.com.tr`) |
+| `LANDING_URL` | Landing (`https://hydrorage.com.tr`) |
 | `ADMIN_EMAILS` | Virgülle ayrılmış allowlist (boşsa herkes) |
 | `APPLE_CLIENT_ID` | Bundle id (`com.hydrorage.app`) |
 
@@ -95,8 +109,8 @@ yarn workspace @hydrorage/api build
 ```
 apps/api      NestJS + TypeORM (EntityManager)
 apps/mobile  Expo SDK 57
-apps/web     Landing (Vite) → hydrorage.com
-apps/admin   Admin (Vite) → admin.hydrorage.com
+apps/web     Landing (Vite) → hydrorage.com.tr
+apps/admin   Admin (Vite) → admin.hydrorage.com.tr
 packages/shared  Ortak sabitler
 ```
 

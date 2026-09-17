@@ -7,7 +7,7 @@ import { AdminGuard } from '@/admin/admin.guard';
 export class LandingController {
   constructor(private readonly landing: LandingService) {}
 
-  /** Public — hydrorage.com */
+  /** Public — hydrorage.com.tr */
   @Get()
   get() {
     return this.landing.getContent();

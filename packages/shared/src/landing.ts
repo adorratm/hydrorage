@@ -124,6 +124,6 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
   },
   footer: {
     left: '© {{year}} HydroRage',
-    right: 'api.hydrorage.com · admin.hydrorage.com',
+    right: 'api.hydrorage.com.tr · admin.hydrorage.com.tr',
   },
 };

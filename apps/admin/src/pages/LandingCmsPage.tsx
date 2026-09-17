@@ -93,7 +93,7 @@ export function LandingCmsPage() {
         body: JSON.stringify(content),
       });
       setContent(saved);
-      setMessage('Landing kaydedildi. hydrorage.com anında güncellenir.');
+      setMessage('Landing kaydedildi. hydrorage.com.tr anında güncellenir.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
@@ -113,7 +113,7 @@ export function LandingCmsPage() {
     <>
       <h1 className="page-title">Landing</h1>
       <p className="page-sub">
-        hydrorage.com içeriğini buradan yönet. Kaydettikten sonra public API
+        hydrorage.com.tr içeriğini buradan yönet. Kaydettikten sonra public API
         güncellenir.
       </p>
 
