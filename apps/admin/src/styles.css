@@ -2,13 +2,13 @@
   --bg: #0b0e18;
   --panel: #151824;
   --panel-2: #1c2030;
-  --ink: #eafbff;
+  --ink: #F0E6FF;
   --muted: #8fa0a8;
-  --cyan: #8be9fd;
-  --cyan-deep: #006a79;
+  --cyan: #BD93F9;
+  --cyan-deep: #6B4FA0;
   --rage: #ff5555;
   --ok: #50fa7b;
-  --line: rgba(139, 233, 253, 0.14);
+  --line: rgba(189, 147, 249, 0.14);
   --font-display: 'Syne', system-ui, sans-serif;
   --font-body: 'Figtree', system-ui, sans-serif;
 }
@@ -25,7 +25,7 @@ body {
   font-family: var(--font-body);
   color: var(--ink);
   background:
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(139, 233, 253, 0.1), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(189, 147, 249, 0.12), transparent 50%),
     var(--bg);
   -webkit-font-smoothing: antialiased;
 }
@@ -303,7 +303,7 @@ button {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--cyan-deep);
-  background: rgba(139, 233, 253, 0.2);
+  background: rgba(189, 147, 249, 0.2);
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
   white-space: nowrap;
@@ -364,7 +364,7 @@ button {
 
 .field input:focus,
 .field textarea:focus {
-  outline: 1px solid rgba(139, 233, 253, 0.45);
+  outline: 1px solid rgba(189, 147, 249, 0.45);
 }
 
 .field-row {

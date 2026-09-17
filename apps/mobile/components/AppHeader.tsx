@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -16,11 +17,17 @@ export function AppHeader({
 }: Props) {
   const insets = useSafeAreaInsets();
   const { logout } = useAuth();
+  const router = useRouter();
 
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 8 }]}>
       <View style={styles.row}>
-        <View style={styles.brand}>
+        <Pressable
+          style={styles.brand}
+          onPress={() => router.replace('/(tabs)/takip')}
+          accessibilityRole="button"
+          accessibilityLabel="Anasayfa"
+        >
           <View style={styles.logo}>
             <Ionicons name="water" size={22} color={colors.primaryContainer} />
           </View>
@@ -35,7 +42,7 @@ export function AppHeader({
               {subtitle}
             </Text>
           </View>
-        </View>
+        </Pressable>
         <View style={styles.actions}>
           <Pressable style={styles.iconBtn} onPress={onPressVolume}>
             <Ionicons name="volume-high" size={20} color={colors.primaryContainer} />

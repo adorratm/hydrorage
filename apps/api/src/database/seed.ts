@@ -101,76 +101,99 @@ async function main() {
     slug: 'sinirli-balkan-annesi',
   });
 
-  const systemCount = await em.count(ThreatTemplate, {
-    where: { isSystem: true },
-  });
-  if (systemCount === 0) {
-    const templates: Partial<ThreatTemplate>[] = [
-      {
-        text: 'Kalk o suyu iç lan artık! Böbreklerin çöl kumuna döndü kurumuşsun!',
-        profanityLevel: ProfanityLevel.UNFILTERED,
-        characterId: bro.id,
-      },
-      {
-        text: 'Ulan 3 saattir tek yudum almadın! Böbreklerin iflas mı etsin istiyorsun, kalk iç!',
-        profanityLevel: ProfanityLevel.UNFILTERED,
-        characterId: bro.id,
-      },
-      {
-        text: 'Kahve içtin ama su nerede koçum? Kafein seni kurutmadan 2 bardak devir.',
-        profanityLevel: ProfanityLevel.NEIGHBORHOOD,
-        characterId: bro.id,
-      },
-      {
-        text: 'Gözünü açar açmaz ekrana yapışma, o bardağı dikle öyle uyan.',
-        profanityLevel: ProfanityLevel.MOCKING,
-        characterId: bro.id,
-      },
-      {
-        text: 'Ekrandan kafanı kaldır iki yudum al {{name}}! Kasların su istiyor lan!',
-        profanityLevel: ProfanityLevel.MILITARY,
-        characterId: coach.id,
-      },
-      {
-        text: 'Günde 5 kahve içmeyi biliyorsun da suyu mu unuttun? +{{debtMl}} ml borcun var.',
-        profanityLevel: ProfanityLevel.NEIGHBORHOOD,
-        characterId: coach.id,
-      },
-      {
-        text: 'Ben sana demedim mi iç diye? Böbreklerin taş dökecek haberin yok {{name}}!',
-        profanityLevel: ProfanityLevel.NEIGHBORHOOD,
-        characterId: mom.id,
-      },
-      {
-        text: 'Filtresiz uyarı: Hoparlörden rezil olmadan önce o suyu dik!',
-        profanityLevel: ProfanityLevel.UNFILTERED,
-        characterId: bro.id,
-      },
-      {
-        text: 'Alay konusu olma: Saatte ~150 ml hedefinin gerisindesin, hareket et.',
-        profanityLevel: ProfanityLevel.MOCKING,
-        characterId: bro.id,
-      },
-      {
-        text: 'Askeri emir: Şimdi 300 ml su. İtiraz yok. İç.',
-        profanityLevel: ProfanityLevel.MILITARY,
-        characterId: coach.id,
-      },
-    ];
+  // Sistem şablonlarını her seed'de tazele (küfür metinleri güncellensin)
+  await em.delete(ThreatTemplate, { isSystem: true });
 
-    for (const t of templates) {
-      const now = new Date();
-      await em.save(
-        em.create(ThreatTemplate, {
-          id: createId(),
-          ...t,
-          isSystem: true,
-          isActive: true,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      );
-    }
+  const templates: Partial<ThreatTemplate>[] = [
+    {
+      text: 'Anasını siktiğimin kurusu, kalk o suyu iç lan! Böbreklerin çatır çatır kuruyor!',
+      profanityLevel: ProfanityLevel.UNFILTERED,
+      characterId: bro.id,
+    },
+    {
+      text: 'Ulan orospu çocuğu 3 saattir tek damla almadın, ne bok yiyorsun? O bardağı dik!',
+      profanityLevel: ProfanityLevel.UNFILTERED,
+      characterId: bro.id,
+    },
+    {
+      text: 'Kahveyi götün gibi yudumluyorsun da suya mı elin değmiyor lan? İki bardak devir şimdi.',
+      profanityLevel: ProfanityLevel.NEIGHBORHOOD,
+      characterId: bro.id,
+    },
+    {
+      text: 'Gözünü açar açmaz telefona yapışma amk, önce o suyu götüne kadar iç öyle uyan.',
+      profanityLevel: ProfanityLevel.MOCKING,
+      characterId: bro.id,
+    },
+    {
+      text: 'Ekrandan kafanı kaldır {{name}}! Kasların su istiyor lan, susuz kas = ölü kas amk!',
+      profanityLevel: ProfanityLevel.MILITARY,
+      characterId: coach.id,
+    },
+    {
+      text: 'Günde 5 kahve içmeyi biliyorsun da suyu mu unuttun seni salak? +{{debtMl}} ml borcun var, öde!',
+      profanityLevel: ProfanityLevel.NEIGHBORHOOD,
+      characterId: coach.id,
+    },
+    {
+      text: 'Ben sana demedim mi iç diye lan? Böbreklerin taş dökecek, sonra ağlama {{name}}!',
+      profanityLevel: ProfanityLevel.NEIGHBORHOOD,
+      characterId: mom.id,
+    },
+    {
+      text: 'Ananı avradını sikeyim, hoparlörden rezil olmadan o suyu dik lan! Filtresiz uyarı bu!',
+      profanityLevel: ProfanityLevel.UNFILTERED,
+      characterId: bro.id,
+    },
+    {
+      text: 'Alay konusu olmuşsun amk: saatte 150 ml hedefinin gerisindesin, hareket et lan tembel!',
+      profanityLevel: ProfanityLevel.MOCKING,
+      characterId: bro.id,
+    },
+    {
+      text: 'Askeri emir: Şimdi 300 ml su. İtiraz yok, götün kalkana kadar iç amına koyayım!',
+      profanityLevel: ProfanityLevel.MILITARY,
+      characterId: coach.id,
+    },
+    {
+      text: 'Senin gibi susuz gezen herifin anasını sikeyim {{name}}! O bardağı şimdi kırılana kadar iç!',
+      profanityLevel: ProfanityLevel.UNFILTERED,
+      characterId: bro.id,
+    },
+    {
+      text: 'Amına kodumun dehydratı, idrarın turuncu mu olmuş? Su iç lan, taş mı toplayacaksın böbreğinde?',
+      profanityLevel: ProfanityLevel.UNFILTERED,
+      characterId: bro.id,
+    },
+    {
+      text: 'Koçum dinle: protein shake içip suyu es geçmek = götünle spor yapmak. 500 ml dik şimdi!',
+      profanityLevel: ProfanityLevel.MILITARY,
+      characterId: coach.id,
+    },
+    {
+      text: 'Annen utanır senden {{name}}! Su içmeye üşenen evlat mı olur lan, utan biraz!',
+      profanityLevel: ProfanityLevel.NEIGHBORHOOD,
+      characterId: mom.id,
+    },
+    {
+      text: 'Siktir git mutfağa, musluğu aç, ağzına sok o suyu. Bahanen yok orospu çocuğu.',
+      profanityLevel: ProfanityLevel.UNFILTERED,
+      characterId: bro.id,
+    },
+  ];
+
+  for (const t of templates) {
+    const now = new Date();
+    await em.save(
+      em.create(ThreatTemplate, {
+        id: createId(),
+        ...t,
+        isSystem: true,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
   }
 
   const landing = await em.findOneBy(LandingPage, { id: LANDING_PAGE_ID });

@@ -1,13 +1,13 @@
 :root {
   --bg: #0b0e18;
   --bg-mid: #11131e;
-  --ink: #eafbff;
+  --ink: #F0E6FF;
   --muted: #8fa0a8;
-  --cyan: #8be9fd;
-  --cyan-deep: #006a79;
+  --cyan: #BD93F9;
+  --cyan-deep: #6B4FA0;
   --rage: #ff5555;
   --hot: #ff79c6;
-  --line: rgba(139, 233, 253, 0.16);
+  --line: rgba(189, 147, 249, 0.16);
   --font-display: 'Syne', system-ui, sans-serif;
   --font-body: 'Figtree', system-ui, sans-serif;
 }
@@ -52,7 +52,7 @@ button {
   align-items: end;
   padding: 1.25rem clamp(1.25rem, 4vw, 3.5rem) 0;
   background:
-    radial-gradient(ellipse 80% 55% at 70% 15%, rgba(139, 233, 253, 0.22), transparent 55%),
+    radial-gradient(ellipse 80% 55% at 70% 15%, rgba(189, 147, 249, 0.22), transparent 55%),
     radial-gradient(ellipse 50% 40% at 10% 80%, rgba(255, 85, 85, 0.14), transparent 50%),
     linear-gradient(165deg, #0b0e18 0%, #151a2a 45%, #0b0e18 100%);
 }
@@ -101,7 +101,7 @@ button {
   line-height: 0.9;
   letter-spacing: -0.05em;
   margin: 0 0 1rem;
-  background: linear-gradient(120deg, var(--cyan) 20%, #eafbff 55%, var(--hot) 100%);
+  background: linear-gradient(120deg, var(--cyan) 20%, #F0E6FF 55%, var(--hot) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -150,7 +150,7 @@ button {
 .btn--primary {
   background: var(--cyan);
   color: #00363e;
-  box-shadow: 0 12px 40px rgba(139, 233, 253, 0.25);
+  box-shadow: 0 12px 40px rgba(189, 147, 249, 0.25);
 }
 
 .btn--ghost {
@@ -182,7 +182,7 @@ button {
   border-radius: 55% 55% 48% 48% / 35% 35% 65% 65%;
   background:
     radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.45), transparent 28%),
-    linear-gradient(180deg, #8be9fd 0%, #2aa8c4 48%, #0f4f5c 100%);
+    linear-gradient(180deg, #bd93f9 0%, #8b6bc7 48%, #3d2a5c 100%);
   box-shadow:
     0 40px 80px rgba(0, 0, 0, 0.45),
     inset 0 -30px 50px rgba(255, 85, 85, 0.18);
@@ -224,7 +224,7 @@ button {
 
 .section--alt {
   background:
-    linear-gradient(180deg, rgba(139, 233, 253, 0.04), transparent 40%),
+    linear-gradient(180deg, rgba(189, 147, 249, 0.04), transparent 40%),
     #0e121c;
 }
 
@@ -311,7 +311,7 @@ button {
 }
 
 .cast__item:hover {
-  border-color: rgba(139, 233, 253, 0.45);
+  border-color: rgba(189, 147, 249, 0.45);
 }
 
 .cast__item strong {

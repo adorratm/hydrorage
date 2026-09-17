@@ -39,7 +39,7 @@ export class ThreatsQueueService implements OnModuleDestroy {
       'threat-due',
       { threatId: threat.id, userId: threat.userId },
       {
-        jobId: `threat-due:${threat.id}`,
+        jobId: `threat-due-${threat.id}`,
         delay,
         removeOnComplete: 1000,
         removeOnFail: 5000,
@@ -48,7 +48,7 @@ export class ThreatsQueueService implements OnModuleDestroy {
   }
 
   async cancelDue(threatId: string) {
-    const job = await this.queue.getJob(`threat-due:${threatId}`);
+    const job = await this.queue.getJob(`threat-due-${threatId}`);
     if (job) await job.remove();
   }
 
