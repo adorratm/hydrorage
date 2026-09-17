@@ -159,12 +159,15 @@ async function main() {
     ];
 
     for (const t of templates) {
+      const now = new Date();
       await em.save(
         em.create(ThreatTemplate, {
           id: createId(),
           ...t,
           isSystem: true,
           isActive: true,
+          createdAt: now,
+          updatedAt: now,
         }),
       );
     }

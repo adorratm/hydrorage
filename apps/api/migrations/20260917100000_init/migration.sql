@@ -26,7 +26,7 @@ CREATE TABLE "User" (
     "streakDays" INTEGER NOT NULL DEFAULT 0,
     "lastGoalDate" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -61,7 +61,7 @@ CREATE TABLE "UserSettings" (
     "waterIntervalMinutes" INTEGER NOT NULL DEFAULT 45,
     "publicShameProtection" BOOLEAN NOT NULL DEFAULT true,
     "whisperVolume" INTEGER NOT NULL DEFAULT 45,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "UserSettings_pkey" PRIMARY KEY ("id")
 );
@@ -94,7 +94,7 @@ CREATE TABLE "ThreatTemplate" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "playCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ThreatTemplate_pkey" PRIMARY KEY ("id")
 );
@@ -143,7 +143,7 @@ CREATE TABLE "Routine" (
     "intensity" "PunishmentIntensity" NOT NULL DEFAULT 'HARD',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Routine_pkey" PRIMARY KEY ("id")
 );

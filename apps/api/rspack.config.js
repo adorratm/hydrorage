@@ -26,7 +26,8 @@ module.exports = (options) => {
     },
     externals: [
       nodeExternals({
-        allowlist: [],
+        // Workspace TS packages must be bundled — Node strip-only can't run enums.
+        allowlist: [/^@hydrorage\//],
         additionalModuleDirs: [
           path.join(__dirname, '../../node_modules'),
           path.join(__dirname, 'node_modules'),

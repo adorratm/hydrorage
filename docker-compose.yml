@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: hydrorage-postgres
     environment:
       POSTGRES_USER: hydrorage
@@ -8,8 +8,9 @@ services:
       POSTGRES_DB: hydrorage
     ports:
       - "5434:5432"
+    # PG 18+: mount parent dir (data lives in /var/lib/postgresql/18/docker)
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hydrorage -d hydrorage"]
       interval: 5s
@@ -21,17 +22,14 @@ services:
   pgbouncer:
     image: edoburu/pgbouncer:v1.23.1-p2
     container_name: hydrorage-pgbouncer
-    environment:
-      DATABASE_URL: postgres://hydrorage:hydrorage@postgres:5432/hydrorage
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: 200
-      DEFAULT_POOL_SIZE: 20
-      MIN_POOL_SIZE: 5
-      RESERVE_POOL_SIZE: 5
-      AUTH_TYPE: scram-sha-256
-      ADMIN_USERS: hydrorage
+    # Custom ini: image entrypoint always injects auth_user and breaks PG18 SCRAM.
+    entrypoint: ["/usr/bin/pgbouncer"]
+    command: ["/etc/pgbouncer/pgbouncer.ini"]
+    volumes:
+      - ./docker/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./docker/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     ports:
-      - "6432:5432"
+      - "6433:5432"
     depends_on:
       postgres:
         condition: service_healthy

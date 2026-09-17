@@ -43,8 +43,8 @@ yarn api
 
 | Servis | Host port | Açıklama |
 |---|---|---|
-| Postgres | `5434` | Direkt DB (migrate / seed / `DIRECT_URL`) |
-| PgBouncer | `6432` | Connection pool (runtime `DATABASE_URL`) |
+| Postgres | `5434` | Direkt DB (migrate / seed / `DIRECT_URL`) · **PostgreSQL 18** |
+| PgBouncer | `6433` | Connection pool (runtime `DATABASE_URL`) · host `6432` çakışmasın diye |
 | Redis | `6379` | Socket.IO adapter + BullMQ (`REDIS_URL`) |
 | API | `3000` | NestJS · WS `/realtime` · Bull Board `/api/admin/queues` |
 | Landing | `5173` | `@hydrorage/web` |

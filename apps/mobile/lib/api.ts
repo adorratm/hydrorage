@@ -1,6 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { storageDelete, storageGet, storageSet } from '@/lib/storage';
 
 const fallbackHost =
   Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
@@ -23,30 +23,30 @@ export async function saveSession(
   tokens: Tokens,
   user: { id: string; email: string; displayName: string },
 ) {
-  await SecureStore.setItemAsync(ACCESS_KEY, tokens.accessToken);
-  await SecureStore.setItemAsync(REFRESH_KEY, tokens.refreshToken);
-  await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+  await storageSet(ACCESS_KEY, tokens.accessToken);
+  await storageSet(REFRESH_KEY, tokens.refreshToken);
+  await storageSet(USER_KEY, JSON.stringify(user));
 }
 
 export async function clearSession() {
-  await SecureStore.deleteItemAsync(ACCESS_KEY);
-  await SecureStore.deleteItemAsync(REFRESH_KEY);
-  await SecureStore.deleteItemAsync(USER_KEY);
+  await storageDelete(ACCESS_KEY);
+  await storageDelete(REFRESH_KEY);
+  await storageDelete(USER_KEY);
 }
 
 export async function getStoredUser() {
-  const raw = await SecureStore.getItemAsync(USER_KEY);
+  const raw = await storageGet(USER_KEY);
   return raw
     ? (JSON.parse(raw) as { id: string; email: string; displayName: string })
     : null;
 }
 
 async function getAccess() {
-  return SecureStore.getItemAsync(ACCESS_KEY);
+  return storageGet(ACCESS_KEY);
 }
 
 async function refreshAccess(): Promise<string | null> {
-  const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
+  const refreshToken = await storageGet(REFRESH_KEY);
   if (!refreshToken) return null;
   const res = await fetch(`${getApiBaseUrl()}/auth/refresh`, {
     method: 'POST',
