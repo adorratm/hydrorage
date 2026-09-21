@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     usesAppleSignIn: true,
     associatedDomains: ['applinks:hydrorage.com.tr', 'applinks:www.hydrorage.com.tr'],
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ['remote-notification', 'audio'],
       NSUserTrackingUsageDescription:
         'Hatırlatmalar ve hidrasyon takibi için kullanılır.',
