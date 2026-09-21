@@ -10,6 +10,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { AccessTokenRequest } from 'expo-auth-session';
 import Constants from 'expo-constants';
 import { api, clearSession, getStoredUser, saveSession } from '@/lib/api';
 
@@ -169,14 +170,43 @@ function AuthProviderWithGoogle({ children }: { children: React.ReactNode }) {
         'EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB eksik — apps/mobile/.env',
       );
     }
+    if (!googleRequest) {
+      throw new Error('Google girişi henüz hazır değil');
+    }
+
     const result = await googlePromptAsync();
     if (result.type !== 'success') {
       throw new Error('Google girişi iptal edildi');
     }
-    const idToken =
+
+    let idToken =
       result.params.id_token ||
       (result as { authentication?: { idToken?: string } }).authentication
         ?.idToken;
+
+    // Native uses authorization code; promptAsync resolves before auto-exchange.
+    // Exchange code → id_token ourselves (PKCE).
+    if (!idToken && result.params.code) {
+      const clientId =
+        Platform.select({
+          ios: iosClientId,
+          android: androidClientId,
+          default: webClientId,
+        }) || webClientId;
+      if (!clientId) {
+        throw new Error('Google Client ID eksik');
+      }
+      const tokenResponse = await new AccessTokenRequest({
+        clientId,
+        code: result.params.code,
+        redirectUri: googleRequest.redirectUri,
+        extraParams: {
+          code_verifier: googleRequest.codeVerifier || '',
+        },
+      }).performAsync(Google.discovery);
+      idToken = tokenResponse.idToken;
+    }
+
     if (!idToken) {
       throw new Error('Google idToken alınamadı');
     }
@@ -189,7 +219,14 @@ function AuthProviderWithGoogle({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ idToken }),
     });
     await session.applySession(data);
-  }, [googlePromptAsync, session.applySession, webClientId]);
+  }, [
+    googlePromptAsync,
+    googleRequest,
+    session.applySession,
+    webClientId,
+    iosClientId,
+    androidClientId,
+  ]);
 
   const value = useMemo(
     () => ({
