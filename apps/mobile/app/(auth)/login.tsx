@@ -70,16 +70,23 @@ export default function LoginScreen() {
         onPress={onGoogle}
         loading={loadingGoogle}
         disabled={!googleReady}
+        style={styles.authBtn}
       />
 
       {Platform.OS === 'ios' && appleAvailable ? (
-        <AppleAuthentication.AppleAuthenticationButton
-          buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
-          cornerRadius={14}
-          style={styles.appleBtn}
-          onPress={onApple}
-        />
+        <View style={styles.appleWrap}>
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={
+              AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+            }
+            buttonStyle={
+              AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+            }
+            cornerRadius={14}
+            style={styles.appleBtn}
+            onPress={onApple}
+          />
+        </View>
       ) : null}
 
       {Platform.OS === 'ios' && appleAvailable && loadingApple ? (
@@ -123,6 +130,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   sub: { color: colors.onSurfaceVariant, textAlign: 'center', lineHeight: 20 },
+  authBtn: { width: '100%', height: 48 },
+  appleWrap: {
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
   appleBtn: { width: '100%', height: 48 },
   hint: {
     color: colors.muted,
