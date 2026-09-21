@@ -12,6 +12,8 @@ import { TemplatesService } from '@/templates/templates.service';
 import { CreateTemplateDto, UpdateTemplateDto } from '@/templates/templates.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
+import { Locale } from '@/common/locale';
+import type { AppLocale } from '@hydrorage/shared';
 
 @Controller('templates')
 @UseGuards(JwtAuthGuard)
@@ -19,8 +21,11 @@ export class TemplatesController {
   constructor(private readonly templates: TemplatesService) {}
 
   @Get()
-  list(@CurrentUser() user: { userId: string }) {
-    return this.templates.list(user.userId);
+  list(
+    @CurrentUser() user: { userId: string },
+    @Locale() locale: AppLocale,
+  ) {
+    return this.templates.list(user.userId, locale);
   }
 
   @Post()

@@ -1,11 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -14,10 +8,16 @@ import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { api } from '@/lib/api';
 import { colors } from '@/constants/theme';
-import { VOLUME_PRESETS_ML } from '@hydrorage/shared';
-
-// Slider may not be installed - I'll use Pressable presets only if slider fails
-// Actually @react-native-community/slider might not be in package.json. Let me avoid it and use presets + simple volume buttons.
+import {
+  VOLUME_PRESETS_ML,
+  fillTemplate,
+  localeTag,
+  type I18nKey,
+} from '@hydrorage/shared';
+import { caffeineAlertBody, isPlus18 } from '@/lib/tone';
+import { confirmAction, promptText, showAlert } from '@/lib/dialog';
+import { speakThreat } from '@/lib/speech';
+import { useLocale, useT } from '@/lib/i18n';
 
 type Dashboard = {
   goalMl: number;
@@ -37,34 +37,66 @@ type Dashboard = {
   }>;
 };
 
-const FILTERS = [
-  { key: 'ALL', label: 'Tümü' },
-  { key: 'WATER', label: 'Sular' },
-  { key: 'CAFFEINE', label: 'Kafein' },
-  { key: 'SUPPLEMENT', label: 'Takviye' },
-] as const;
+const FILTER_KEYS = ['ALL', 'WATER', 'CAFFEINE', 'SUPPLEMENT'] as const;
 
 const DRINK_TYPES = [
-  { type: 'WATER', label: 'Su', icon: 'water' },
-  { type: 'COFFEE', label: 'Kahve', icon: 'cafe' },
-  { type: 'TEA', label: 'Çay', icon: 'leaf' },
-  { type: 'MINERAL', label: 'Maden Suyu', icon: 'flask' },
-  { type: 'ALCOHOL', label: 'Alkol', icon: 'wine', danger: true },
-  { type: 'PROTEIN', label: 'Protein', icon: 'barbell' },
-  { type: 'MEDICINE', label: 'İlaç', icon: 'medkit' },
-  { type: 'ENERGY', label: 'Enerji', icon: 'flash' },
+  { type: 'WATER', icon: 'water', labelKey: 'drinks.type.WATER' as I18nKey },
+  { type: 'COFFEE', icon: 'cafe', labelKey: 'drinks.type.COFFEE' as I18nKey },
+  { type: 'TEA', icon: 'leaf', labelKey: 'drinks.type.TEA' as I18nKey },
+  {
+    type: 'MINERAL',
+    icon: 'flask',
+    labelKey: 'drinks.type.MINERAL' as I18nKey,
+  },
+  {
+    type: 'ALCOHOL',
+    icon: 'wine',
+    labelKey: 'drinks.type.ALCOHOL' as I18nKey,
+    danger: true,
+  },
+  {
+    type: 'PROTEIN',
+    icon: 'barbell',
+    labelKey: 'drinks.type.PROTEIN' as I18nKey,
+  },
+  {
+    type: 'MEDICINE',
+    icon: 'medkit',
+    labelKey: 'drinks.type.MEDICINE' as I18nKey,
+  },
+  { type: 'ENERGY', icon: 'flash', labelKey: 'drinks.type.ENERGY' as I18nKey },
 ] as const;
 
 export default function IceceklerScreen() {
+  const tr = useT();
+  const locale = useLocale();
+  const tag = localeTag(locale);
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('ALL');
+  const [filter, setFilter] = useState<(typeof FILTER_KEYS)[number]>('ALL');
   const [selectedType, setSelectedType] = useState('WATER');
   const [volume, setVolume] = useState(330);
 
+  const filterLabel = (key: (typeof FILTER_KEYS)[number]) => {
+    if (key === 'ALL') return tr('drinks.all');
+    if (key === 'WATER') return tr('preset.WATER');
+    if (key === 'CAFFEINE') return tr('preset.COFFEE');
+    return tr('preset.PROTEIN');
+  };
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ['dashboard', locale],
     queryFn: () => api<Dashboard>('/dashboard/today'),
   });
+  const { data: settings } = useQuery({
+    queryKey: ['settings', locale],
+    queryFn: () => api<{ plus18Mode: boolean }>('/settings'),
+  });
+  const plus18 = isPlus18(settings);
+
+  const drinkLabel = (type: string) => {
+    const row = DRINK_TYPES.find((d) => d.type === type);
+    return row ? tr(row.labelKey) : type;
+  };
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -72,9 +104,7 @@ export default function IceceklerScreen() {
         method: 'POST',
         body: JSON.stringify({
           type: selectedType,
-          label:
-            DRINK_TYPES.find((d) => d.type === selectedType)?.label ??
-            selectedType,
+          label: drinkLabel(selectedType),
           amountMl: volume,
         }),
       }),
@@ -82,8 +112,59 @@ export default function IceceklerScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       qc.invalidateQueries({ queryKey: ['dashboard'] });
     },
-    onError: (e: Error) => Alert.alert('Hata', e.message),
+    onError: (e: Error) => showAlert(tr('common.error'), e.message),
   });
+
+  const updateIntake = useMutation({
+    mutationFn: (body: { id: string; amountMl: number }) =>
+      api(`/intake/${body.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ amountMl: Math.round(body.amountMl) }),
+      }),
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      showAlert(tr('common.save'), tr('profile.updated'));
+    },
+    onError: (e: Error) => showAlert(tr('common.error'), e.message),
+  });
+
+  const removeIntake = useMutation({
+    mutationFn: (id: string) =>
+      api(`/intake/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError: (e: Error) => showAlert(tr('common.error'), e.message),
+  });
+
+  const editIntake = (i: Dashboard['intakes'][number]) => {
+    promptText({
+      title: tr('common.edit'),
+      message: `${i.label} — ml`,
+      defaultValue: String(i.amountMl),
+      keyboardType: 'numeric',
+      onSubmit: (raw) => {
+        const amountMl = Math.round(Number(raw.replace(',', '.')));
+        if (!Number.isFinite(amountMl) || amountMl < 1) {
+          showAlert(tr('common.error'), '1 ml+');
+          return;
+        }
+        updateIntake.mutate({ id: i.id, amountMl });
+      },
+    });
+  };
+
+  const deleteIntake = (i: Dashboard['intakes'][number]) => {
+    confirmAction({
+      title: tr('dialog.confirmDelete'),
+      message: `${i.label} (${i.amountMl} ml)`,
+      confirmLabel: tr('common.delete'),
+      destructive: true,
+      onConfirm: () => removeIntake.mutate(i.id),
+    });
+  };
 
   const filtered = useMemo(() => {
     const list = data?.intakes ?? [];
@@ -104,39 +185,53 @@ export default function IceceklerScreen() {
   }, [data, filter]);
 
   const score = data?.percent ?? 0;
-  const riskLabel = score < 70 ? 'RİSKLİ' : score < 90 ? 'İDARE' : 'İYİ';
+  const riskLabel =
+    score < 70
+      ? tr('drinks.risk.low')
+      : score < 90
+        ? tr('drinks.risk.mid')
+        : tr('drinks.risk.high');
 
   return (
     <Screen
-      subtitle="Bildirim & Tehdit Ayarları"
+      subtitle={tr('drinks.title')}
       refreshing={isFetching}
       onRefresh={() => refetch()}
+      onPressVolume={() =>
+        void speakThreat(
+          plus18
+            ? tr('drinks.voiceTestPlus18')
+            : tr('drinks.voiceTestSafe'),
+        )
+      }
     >
       <Card>
         <View style={styles.rowBetween}>
-          <Text style={styles.title}>Günlük Sıvı Dengesi</Text>
+          <Text style={styles.title}>{tr('drinks.title')}</Text>
           <View style={styles.scoreBadge}>
             <Text style={styles.scoreText}>
-              SKOR: %{score} ({riskLabel})
+              {fillTemplate(tr('drinks.score'), { score, risk: riskLabel })}
             </Text>
           </View>
         </View>
         <View style={styles.rowBetween}>
           <View>
-            <Text style={styles.metricLabel}>BRÜT TÜKETİM</Text>
+            <Text style={styles.metricLabel}>{tr('drinks.gross')}</Text>
             <Text style={styles.big}>{data?.grossMl ?? 0} ml</Text>
             <Text style={styles.metricLabel}>
-              Saf Su: {data?.pureWaterMl ?? 0} ml
+              {fillTemplate(tr('drinks.pureWater'), {
+                ml: data?.pureWaterMl ?? 0,
+              })}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={[styles.metricLabel, { color: colors.error }]}>
-              DEHİDRASYON CEZASI
+              {tr('drinks.penalty')}
             </Text>
             <Text style={[styles.big, { color: colors.error }]}>
               -{data?.penaltyMl ?? 0} ml
             </Text>
-            <Text style={styles.metricLabel}>Kahve / Diüretik Borcu</Text>
+            <Text style={styles.metricLabel}>{tr('drinks.caffeineDebt')}</Text>
           </View>
         </View>
         <View style={styles.barTrack}>
@@ -161,10 +256,11 @@ export default function IceceklerScreen() {
           <View style={styles.alert}>
             <Ionicons name="warning" size={18} color={colors.error} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.alertTitle}>KAFEİN / DİÜRETİK CEZASI</Text>
+              <Text style={styles.alertTitle}>
+                {tr('drinks.caffeineAlert')}
+              </Text>
               <Text style={styles.alertBody}>
-                Bugün diüretik borcun sisteme yazıldı. Telafi için ekstra su
-                dök, lan gevşek!
+                {caffeineAlertBody(plus18, locale)}
               </Text>
             </View>
           </View>
@@ -172,30 +268,34 @@ export default function IceceklerScreen() {
       </Card>
 
       <View style={styles.filters}>
-        {FILTERS.map((f) => (
+        {FILTER_KEYS.map((key) => (
           <Pressable
-            key={f.key}
-            onPress={() => setFilter(f.key)}
-            style={[styles.filterChip, filter === f.key && styles.filterActive]}
+            key={key}
+            onPress={() => setFilter(key)}
+            style={[styles.filterChip, filter === key && styles.filterActive]}
           >
             <Text
               style={[
                 styles.filterText,
-                filter === f.key && { color: colors.primaryContainer },
+                filter === key && { color: colors.primaryContainer },
               ]}
             >
-              {f.label}
+              {filterLabel(key)}
             </Text>
           </Pressable>
         ))}
       </View>
+
+      {!filtered.length ? (
+        <Text style={styles.metricLabel}>{tr('drinks.empty')}</Text>
+      ) : null}
 
       {filtered.map((i) => (
         <Card key={i.id}>
           <View style={styles.rowBetween}>
             <Text style={styles.itemTitle}>{i.label}</Text>
             <Text style={styles.metricLabel}>
-              {new Date(i.createdAt).toLocaleTimeString('tr-TR', {
+              {new Date(i.createdAt).toLocaleTimeString(tag, {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
@@ -204,13 +304,29 @@ export default function IceceklerScreen() {
           <Text style={styles.itemMeta}>
             {i.amountMl} ml · net {i.netMl >= 0 ? '+' : ''}
             {i.netMl}
-            {i.penaltyMl > 0 ? ` · ceza -${i.penaltyMl}` : ''}
+            {i.penaltyMl > 0 ? ` · -${i.penaltyMl}` : ''}
           </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+            <PrimaryButton
+              label={tr('common.edit')}
+              variant="secondary"
+              style={{ flex: 1 }}
+              loading={updateIntake.isPending}
+              onPress={() => editIntake(i)}
+            />
+            <PrimaryButton
+              label={tr('common.delete')}
+              variant="danger"
+              style={{ flex: 1 }}
+              loading={removeIntake.isPending}
+              onPress={() => deleteIntake(i)}
+            />
+          </View>
         </Card>
       ))}
 
       <Card>
-        <Text style={styles.title}>Hızlı Sıvı / İlaç Kaydı</Text>
+        <Text style={styles.title}>{tr('drinks.add')}</Text>
         <View style={styles.typeGrid}>
           {DRINK_TYPES.map((d) => (
             <Pressable
@@ -231,7 +347,7 @@ export default function IceceklerScreen() {
                     : colors.onSurfaceVariant
                 }
               />
-              <Text style={styles.typeLabel}>{d.label}</Text>
+              <Text style={styles.typeLabel}>{tr(d.labelKey)}</Text>
             </Pressable>
           ))}
         </View>
@@ -253,7 +369,9 @@ export default function IceceklerScreen() {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.volSelected}>SEÇİLEN HACİM {volume} ml</Text>
+        <Text style={styles.volSelected}>
+          {fillTemplate(tr('drinks.volumeSelected'), { ml: volume })}
+        </Text>
         <View style={styles.volAdjust}>
           <Pressable
             style={styles.adjustBtn}
@@ -269,7 +387,7 @@ export default function IceceklerScreen() {
           </Pressable>
         </View>
         <PrimaryButton
-          label="Tüketimi Kaydet ve Azarı Sıfırla"
+          label={tr('common.save')}
           loading={mutation.isPending}
           onPress={() => mutation.mutate()}
           style={{ marginTop: 12 }}
@@ -277,12 +395,8 @@ export default function IceceklerScreen() {
       </Card>
 
       <Card danger>
-        <Text style={styles.protocol}>OTOMATİK TEHDİT PROTOKOLÜ</Text>
-        <Text style={styles.protocolBody}>
-          Günün hidrasyon borcu kapanmazsa saat 22:00'de telefonun
-          hoparlöründen en yüksek sesle bütün odaya rezil edileceksin. Bahanen
-          yok, o suyu iç.
-        </Text>
+        <Text style={styles.protocol}>{tr('drinks.protocolTitle')}</Text>
+        <Text style={styles.protocolBody}>{tr('drinks.protocolBody')}</Text>
       </Card>
     </Screen>
   );

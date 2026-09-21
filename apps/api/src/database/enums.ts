@@ -15,6 +15,7 @@ export enum DrinkType {
 }
 
 export enum ProfanityLevel {
+  SAFE = 'SAFE',
   MOCKING = 'MOCKING',
   NEIGHBORHOOD = 'NEIGHBORHOOD',
   MILITARY = 'MILITARY',

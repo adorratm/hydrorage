@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Share, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect } from 'react-native-svg';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
-import { PrimaryButton } from '@/components/PrimaryButton';
+import { WeeklyShareCard } from '@/components/WeeklyShareCard';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
 import { colors } from '@/constants/theme';
+import { useT } from '@/lib/i18n';
 
 type Weekly = {
   rageLevel: number;
@@ -39,6 +40,7 @@ type Weekly = {
 };
 
 export default function IstatistikScreen() {
+  const tr = useT();
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['stats-weekly'],
     queryFn: () => api<Weekly>('/stats/weekly'),
@@ -46,24 +48,31 @@ export default function IstatistikScreen() {
 
   const maxL = Math.max(2.5, ...(data?.daily.map((d) => d.liters) ?? [2.5]));
 
-  const onShare = async () => {
-    if (!data) return;
-    await Share.share({
-      message: `HYDRO-RAGE RESMİ İFŞASI\n${data.shareQuote}\nRage ${data.rageLevel}/5 · ${data.totalLiters}L · ${data.scoldCount} azar`,
-    });
-  };
-
   return (
     <Screen
-      subtitle="PERFORMANS ANALİZİ"
+      subtitle={tr('stats.title')}
       refreshing={isFetching}
       onRefresh={() => refetch()}
+      onPressVolume={() => {
+        if (data?.shareQuote) void speakThreat(data.shareQuote);
+        else void speakThreat(tr('empty.threatsBody'));
+      }}
     >
+      {data ? (
+        <WeeklyShareCard
+          rageLevel={data.rageLevel}
+          grade={data.grade}
+          totalLiters={data.totalLiters}
+          scoldCount={data.scoldCount}
+          shareQuote={data.shareQuote}
+        />
+      ) : null}
+
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Haftalık Tehdit Karnesi</Text>
+        <Text style={styles.title}>{tr('stats.title')}</Text>
         <View style={styles.ragePill}>
           <Text style={styles.ragePillText}>
-            RAGE SEVİYESİ {data?.rageLevel ?? 1}/5
+            RAGE {data?.rageLevel ?? 1}/5
           </Text>
         </View>
       </View>
@@ -75,19 +84,19 @@ export default function IstatistikScreen() {
           <Text style={styles.grade}>{data?.grade ?? '—'}</Text>
         </View>
         <View style={styles.statsRow}>
-          <Stat n={data?.scoldCount ?? 0} label="Yenen Fırça" />
-          <Stat n={data?.missedGlasses ?? 0} label="Kaçan Bardak" />
+          <Stat n={data?.scoldCount ?? 0} label={tr('stats.scolds')} />
+          <Stat n={data?.missedGlasses ?? 0} label={tr('track.debt')} />
           <Stat
             n={`${data?.totalLiters ?? 0}`}
-            label="İçilen Su (L)"
+            label={tr('track.goal')}
           />
         </View>
       </Card>
 
       <Card>
-        <Text style={styles.section}>Haftalık İnfaz Grafiği</Text>
+        <Text style={styles.section}>{tr('stats.title')}</Text>
         <Text style={styles.metricLabel}>
-          Günde en az {(data?.dailyGoalMl ?? 2500) / 1000}L su hedeflendi
+          {(data?.dailyGoalMl ?? 2500) / 1000}L
         </Text>
         <View style={styles.chart}>
           <Svg width="100%" height={140} viewBox="0 0 280 140">
@@ -123,14 +132,14 @@ export default function IstatistikScreen() {
           </View>
         </View>
         <View style={styles.legend}>
-          <Legend color={colors.primaryContainer} label="Hedef Tutuldu" />
-          <Legend color={colors.violet} label="Direkten Döndü" />
-          <Legend color={colors.danger} label="Ağır Hakaret" />
+          <Legend color={colors.primaryContainer} label={tr('track.goal')} />
+          <Legend color={colors.violet} label={tr('track.debt')} />
+          <Legend color={colors.danger} label={tr('stats.scolds')} />
         </View>
       </Card>
 
       <Card>
-        <Text style={styles.section}>En Çok Yenen Fırçalar</Text>
+        <Text style={styles.section}>{tr('stats.scolds')}</Text>
         {(data?.topScolds ?? []).map((s, idx) => (
           <View key={idx} style={styles.scoldRow}>
             <View style={{ flex: 1 }}>
@@ -147,20 +156,18 @@ export default function IstatistikScreen() {
           </View>
         ))}
         {!data?.topScolds?.length && (
-          <Text style={styles.metricLabel}>Henüz azar yok — şanslısın.</Text>
+          <Text style={styles.metricLabel}>{tr('empty.threats')}</Text>
         )}
       </Card>
 
       <Card>
         <View style={styles.rowBetween}>
-          <Text style={styles.section}>Böbrek Barometresi</Text>
+          <Text style={styles.section}>{tr('stats.title')}</Text>
           <Text style={{ color: colors.error, fontWeight: '800' }}>
-            RİSK: {data?.risk ?? '—'}
+            {data?.risk ?? '—'}
           </Text>
         </View>
-        <Text style={styles.body}>
-          Böbrek Sağlık İndeksi %{data?.kidneyIndex ?? 0}
-        </Text>
+        <Text style={styles.body}>%{data?.kidneyIndex ?? 0}</Text>
         <View style={styles.barTrack}>
           <View
             style={[
@@ -169,26 +176,14 @@ export default function IstatistikScreen() {
             ]}
           />
         </View>
-        <Text style={[styles.metricLabel, { marginTop: 8 }]}>
-          Biraz daha su içmezsen taş dökeceksin haberin yok, kaktüse döndün.
-        </Text>
         <View style={styles.rowBetween}>
           <Text style={styles.metricLabel}>
-            Kafein/Su {data?.caffeineWaterRatio}
+            {data?.caffeineWaterRatio}
           </Text>
           <Text style={styles.metricLabel}>
-            Kurtarılan {data?.savedGlasses} (%{data?.savedRate})
+            {data?.savedGlasses} (%{data?.savedRate})
           </Text>
         </View>
-      </Card>
-
-      <Card>
-        <Text style={styles.section}>HYDRO-RAGE RESMİ İFŞASI</Text>
-        <Text style={styles.shareQuote}>“{data?.shareQuote}”</Text>
-        <PrimaryButton
-          label="Utanç Raporunu Dışa Aktar"
-          onPress={onShare}
-        />
       </Card>
     </Screen>
   );
@@ -270,5 +265,4 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: colors.danger,
   },
-  shareQuote: { color: colors.onSurface, marginVertical: 10, fontStyle: 'italic' },
 });

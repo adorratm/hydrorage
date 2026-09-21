@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Pressable,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { localizeCharacter } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
 import { colors } from '@/constants/theme';
+import { confirmAction, showAlert } from '@/lib/dialog';
+import { useLocale, useT } from '@/lib/i18n';
 
 type Template = {
   id: string;
@@ -24,12 +20,14 @@ type Template = {
   isSystem: boolean;
   isActive: boolean;
   playCount: number;
-  character?: { name: string } | null;
+  character?: { name: string; slug?: string } | null;
 };
 
-const LEVELS = ['MOCKING', 'NEIGHBORHOOD', 'MILITARY', 'UNFILTERED'] as const;
+const LEVELS = ['SAFE', 'MOCKING', 'NEIGHBORHOOD', 'MILITARY', 'UNFILTERED'] as const;
 
 export default function SablonlarScreen() {
+  const tr = useT();
+  const locale = useLocale();
   const router = useRouter();
   const qc = useQueryClient();
   const [text, setText] = useState('');
@@ -37,7 +35,7 @@ export default function SablonlarScreen() {
     useState<(typeof LEVELS)[number]>('UNFILTERED');
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['templates'],
+    queryKey: ['templates', locale],
     queryFn: () => api<Template[]>('/templates'),
   });
 
@@ -55,7 +53,7 @@ export default function SablonlarScreen() {
       setText('');
       qc.invalidateQueries({ queryKey: ['templates'] });
     },
-    onError: (e: Error) => Alert.alert('Hata', e.message),
+    onError: (e: Error) => showAlert(tr('common.error'), e.message),
   });
 
   const remove = useMutation({
@@ -75,24 +73,22 @@ export default function SablonlarScreen() {
 
   return (
     <Screen
-      subtitle="Tehdit Şablonları"
+      subtitle={tr('templates.title')}
       refreshing={isFetching}
       onRefresh={() => refetch()}
     >
       <Pressable onPress={() => router.back()} style={styles.back}>
         <Ionicons name="arrow-back" size={18} color={colors.primaryContainer} />
-        <Text style={styles.backText}>Geri</Text>
+        <Text style={styles.backText}>{tr('routine.back')}</Text>
       </Pressable>
 
       <Card>
-        <Text style={styles.title}>Yeni Şablon</Text>
-        <Text style={styles.hint}>
-          Placeholder: {'{{name}}'}, {'{{debtMl}}'}
-        </Text>
+        <Text style={styles.title}>{tr('templates.new')}</Text>
+        <Text style={styles.hint}>{tr('templates.hint')}</Text>
         <TextInput
           style={styles.input}
           multiline
-          placeholder="Kalk o suyu iç {{name}}! {{debtMl}} ml borcun var!"
+          placeholder={tr('templates.placeholder')}
           placeholderTextColor={colors.muted}
           value={text}
           onChangeText={setText}
@@ -116,7 +112,7 @@ export default function SablonlarScreen() {
           ))}
         </View>
         <PrimaryButton
-          label="Şablonu Kaydet"
+          label={tr('templates.save')}
           disabled={text.trim().length < 5}
           loading={create.isPending}
           onPress={() => create.mutate()}
@@ -124,56 +120,70 @@ export default function SablonlarScreen() {
         />
       </Card>
 
-      {(data ?? []).map((t) => (
-        <Card key={t.id}>
-          <View style={styles.rowBetween}>
-            <Text style={styles.meta}>
-              {t.isSystem ? 'SİSTEM' : 'SENİN'} · {t.profanityLevel} ·{' '}
-              {t.playCount}x
-            </Text>
-            <Text style={{ color: t.isActive ? colors.success : colors.muted }}>
-              {t.isActive ? 'Aktif' : 'Pasif'}
-            </Text>
-          </View>
-          <Text style={styles.text}>“{t.text}”</Text>
-          {!!t.character && (
-            <Text style={styles.hint}>{t.character.name}</Text>
-          )}
-          <View style={styles.actions}>
-            <PrimaryButton
-              label="Dinle"
-              variant="secondary"
-              onPress={() => speakThreat(t.text)}
-              style={{ flex: 1 }}
-            />
-            {!t.isSystem && (
-              <>
-                <PrimaryButton
-                  label={t.isActive ? 'Pasifleştir' : 'Aktifleştir'}
-                  variant="secondary"
-                  onPress={() => toggle.mutate(t)}
-                  style={{ flex: 1 }}
-                />
-                <PrimaryButton
-                  label="Sil"
-                  variant="danger"
-                  onPress={() =>
-                    Alert.alert('Sil?', 'Şablon silinecek', [
-                      { text: 'İptal', style: 'cancel' },
-                      {
-                        text: 'Sil',
-                        style: 'destructive',
-                        onPress: () => remove.mutate(t.id),
-                      },
-                    ])
-                  }
-                  style={{ flex: 1 }}
-                />
-              </>
-            )}
-          </View>
-        </Card>
-      ))}
+      {(data ?? []).map((tpl) => {
+        const charName = tpl.character
+          ? localizeCharacter(tpl.character.slug, locale, {
+              name: tpl.character.name,
+            }).name
+          : null;
+        return (
+          <Card key={tpl.id}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.meta}>
+                {tpl.isSystem ? tr('templates.system') : tr('templates.yours')} ·{' '}
+                {tpl.profanityLevel} · {tpl.playCount}x
+              </Text>
+              <Text
+                style={{
+                  color: tpl.isActive ? colors.success : colors.muted,
+                }}
+              >
+                {tpl.isActive
+                  ? tr('templates.active')
+                  : tr('templates.inactive')}
+              </Text>
+            </View>
+            <Text style={styles.text}>“{tpl.text}”</Text>
+            {!!charName && <Text style={styles.hint}>{charName}</Text>}
+            <View style={styles.actions}>
+              <PrimaryButton
+                label={tr('templates.listen')}
+                variant="secondary"
+                onPress={() => speakThreat(tpl.text)}
+                style={{ flex: 1 }}
+              />
+              {!tpl.isSystem && (
+                <>
+                  <PrimaryButton
+                    label={
+                      tpl.isActive
+                        ? tr('templates.deactivate')
+                        : tr('templates.activate')
+                    }
+                    variant="secondary"
+                    onPress={() => toggle.mutate(tpl)}
+                    style={{ flex: 1 }}
+                  />
+                  <PrimaryButton
+                    label={tr('common.delete')}
+                    variant="danger"
+                    onPress={() =>
+                      confirmAction({
+                        title: tr('templates.deleteConfirm'),
+                        message: tr('templates.deleteBody'),
+                        confirmLabel: tr('common.delete'),
+                        destructive: true,
+                        onConfirm: () => remove.mutate(tpl.id),
+                      })
+                    }
+                    style={{ flex: 1 }}
+                  />
+                </>
+              )}
+            </View>
+          </Card>
+        );
+      })}
     </Screen>
   );
 }

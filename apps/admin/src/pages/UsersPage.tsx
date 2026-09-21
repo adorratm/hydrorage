@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { localeTag } from '@hydrorage/shared';
 import { api, type AdminUser } from '../lib/api';
+import { useLocale } from '../locale';
 
 export function UsersPage() {
+  const { t, locale } = useLocale();
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,35 +16,45 @@ export function UsersPage() {
   }, []);
 
   if (error) return <p className="error">{error}</p>;
-  if (!users) return <p className="muted">Yükleniyor…</p>;
+  if (!users) return <p className="muted">{t('common.loading')}</p>;
 
   return (
     <>
-      <h1 className="page-title">Kullanıcılar</h1>
-      <p className="page-sub">{users.length} kayıt</p>
+      <h1 className="page-title">{t('admin.users.title')}</h1>
+      <p className="page-sub">
+        {users.length} {locale === 'en' ? 'records' : 'kayıt'}
+      </p>
       <div className="panel">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>İsim</th>
-              <th>E-posta</th>
-              <th>Hedef</th>
-              <th>Streak</th>
-              <th>Kayıt</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td>{u.displayName}</td>
-                <td>{u.email}</td>
-                <td>{u.dailyGoalMl} ml</td>
-                <td>{u.streakDays}g</td>
-                <td>{new Date(u.createdAt).toLocaleDateString('tr-TR')}</td>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{locale === 'en' ? 'Name' : 'İsim'}</th>
+                <th>{locale === 'en' ? 'Email' : 'E-posta'}</th>
+                <th>{locale === 'en' ? 'Goal' : 'Hedef'}</th>
+                <th>Streak</th>
+                <th>{locale === 'en' ? 'Joined' : 'Kayıt'}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td>
+                    <Link to={`/users/${u.id}`}>{u.displayName}</Link>
+                  </td>
+                  <td>
+                    <Link to={`/users/${u.id}`}>{u.email}</Link>
+                  </td>
+                  <td>{u.dailyGoalMl} ml</td>
+                  <td>{u.streakDays}d</td>
+                  <td>
+                    {new Date(u.createdAt).toLocaleDateString(localeTag(locale))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

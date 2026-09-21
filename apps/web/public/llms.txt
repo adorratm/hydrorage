@@ -1,0 +1,22 @@
+# HydroRage
+
+> Hidrasyon takibi + sesli hatırlatma. Su hedefini kaçırınca (isteğe bağlı) küfürlü tehdit; güvenli modda küfürsüz uyarı.
+
+## Site
+- Ana sayfa: https://hydrorage.com.tr/
+- Gizlilik: https://hydrorage.com.tr/gizlilik
+- Kullanıcı sözleşmesi: https://hydrorage.com.tr/kosullar
+- KVKK: https://hydrorage.com.tr/kvkk
+- Aydınlatma: https://hydrorage.com.tr/aydinlatma-metni
+- Çerezler: https://hydrorage.com.tr/cerez-politikasi
+- Blog: https://hydrorage.com.tr/blog
+
+## Ürün özeti
+HydroRage günlük su/içecek tüketimini takip eder, diüretik borcu hesaplar, bildirim ve TTS ile hatırlatır. Kullanıcı +18 veya güvenli mod seçebilir.
+
+## İndirme
+- iOS: App Store (com.hydrorage.app)
+- Android: Google Play (com.hydrorage.app)
+
+## İletişim
+Destek ve KVKK talepleri: destek@hydrorage.com.tr

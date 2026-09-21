@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager, MoreThanOrEqual } from 'typeorm';
 import { DrinkType, ThreatStatus } from '@/database/enums';
@@ -38,31 +42,52 @@ export class IntakeService {
     );
 
     if (computed.netMl > 0) {
-      const due = await this.em.find(ThreatEvent, {
-        where: [
-          {
-            userId,
-            status: ThreatStatus.PENDING,
-          },
-          {
-            userId,
-            status: ThreatStatus.PLAYED,
-          },
-        ],
-      });
-      const now = new Date();
-      for (const threat of due) {
-        if (threat.scheduledAt > now) continue;
-        threat.status = ThreatStatus.COMPLETED;
-        await this.em.save(threat);
-        await this.threatsQueue.cancelDue(threat.id);
-        this.realtime.threatCompleted(userId, threat);
-      }
+      await this.completeDueThreats(userId);
     }
 
     await this.updateStreak(userId);
     this.realtime.intakeCreated(userId, intake);
     return intake;
+  }
+
+  async update(
+    userId: string,
+    id: string,
+    data: {
+      type?: DrinkType;
+      label?: string;
+      amountMl?: number;
+      note?: string;
+    },
+  ) {
+    const intake = await this.em.findOneBy(Intake, { id });
+    if (!intake) throw new NotFoundException();
+    if (intake.userId !== userId) {
+      throw new ForbiddenException('Bu kaydı düzenleyemezsin');
+    }
+    if (data.type !== undefined) intake.type = data.type;
+    if (data.label !== undefined) intake.label = data.label;
+    if (data.amountMl !== undefined) intake.amountMl = data.amountMl;
+    if (data.note !== undefined) intake.note = data.note;
+    const computed = computeNetMl(intake.type, intake.amountMl);
+    intake.penaltyMl = computed.penaltyMl;
+    intake.netMl = computed.netMl;
+    const saved = await this.em.save(intake);
+    await this.updateStreak(userId);
+    this.realtime.intakeUpdated(userId, saved);
+    return saved;
+  }
+
+  async remove(userId: string, id: string) {
+    const intake = await this.em.findOneBy(Intake, { id });
+    if (!intake) throw new NotFoundException();
+    if (intake.userId !== userId) {
+      throw new ForbiddenException('Bu kaydı silemezsin');
+    }
+    await this.em.remove(intake);
+    await this.updateStreak(userId);
+    this.realtime.intakeDeleted(userId, { id });
+    return { ok: true };
   }
 
   async listToday(userId: string, type?: DrinkType) {
@@ -93,6 +118,23 @@ export class IntakeService {
     const penaltyMl = intakes.reduce((s, i) => s + i.penaltyMl, 0);
     const netMl = intakes.reduce((s, i) => s + i.netMl, 0);
     return { intakes, grossMl, pureWaterMl, penaltyMl, netMl };
+  }
+
+  private async completeDueThreats(userId: string) {
+    const due = await this.em.find(ThreatEvent, {
+      where: [
+        { userId, status: ThreatStatus.PENDING },
+        { userId, status: ThreatStatus.PLAYED },
+      ],
+    });
+    const now = new Date();
+    for (const threat of due) {
+      if (threat.scheduledAt > now) continue;
+      threat.status = ThreatStatus.COMPLETED;
+      await this.em.save(threat);
+      await this.threatsQueue.cancelDue(threat.id);
+      this.realtime.threatCompleted(userId, threat);
+    }
   }
 
   private async updateStreak(userId: string) {

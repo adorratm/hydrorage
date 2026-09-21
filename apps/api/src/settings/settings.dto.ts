@@ -15,6 +15,14 @@ export class UpdateSettingsDto {
   voiceNotifications?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  plus18Mode?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  onboardingCompleted?: boolean;
+
+  @IsOptional()
   @IsEnum(ProfanityLevel)
   profanityLevel?: ProfanityLevel;
 

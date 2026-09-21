@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader } from '@/components/AppHeader';
+import { NetworkBanner } from '@/components/NetworkBanner';
 import { colors, spacing } from '@/constants/theme';
 
 export function Screen({
@@ -21,6 +22,7 @@ export function Screen({
   return (
     <View style={styles.root}>
       <AppHeader subtitle={subtitle} onPressVolume={onPressVolume} />
+      <NetworkBanner />
       <ScrollView
         contentContainerStyle={[
           styles.content,

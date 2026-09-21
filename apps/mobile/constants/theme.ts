@@ -41,3 +41,5 @@ export const spacing = {
   xl: 32,
   margin: 20,
 } as const;
+
+export { fonts, font } from '@/constants/fonts';

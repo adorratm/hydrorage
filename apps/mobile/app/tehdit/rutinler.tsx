@@ -10,12 +10,15 @@ import {
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { fillTemplate, localeTag } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
 import { colors } from '@/constants/theme';
+import { isPlus18 } from '@/lib/tone';
+import { useLocale, useT } from '@/lib/i18n';
 
 type Log = {
   id: string;
@@ -29,6 +32,8 @@ type Log = {
 };
 
 export default function RutinlerScreen() {
+  const tr = useT();
+  const locale = useLocale();
   const router = useRouter();
   const qc = useQueryClient();
   const [title, setTitle] = useState('');
@@ -40,14 +45,21 @@ export default function RutinlerScreen() {
     queryKey: ['timeline'],
     queryFn: () => api<Log[]>('/routines/timeline'),
   });
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api<{ plus18Mode: boolean }>('/settings'),
+  });
+  const plus18 = isPlus18(settings);
 
   const create = useMutation({
     mutationFn: () =>
       api('/routines', {
         method: 'POST',
         body: JSON.stringify({
-          title: title || 'Su Seansı',
-          description: 'Snooze basarsan küfür hoparlöre gider.',
+          title: title || tr('routine.defaultTitle'),
+          description: plus18
+            ? tr('routine.descPlus18')
+            : tr('routine.descSafe'),
           drinkType: 'WATER',
           amountMl: Number(amountMl) || 350,
           kind: 'SPECIFIC_TIMES',
@@ -59,9 +71,9 @@ export default function RutinlerScreen() {
       setTitle('');
       qc.invalidateQueries({ queryKey: ['timeline'] });
       qc.invalidateQueries({ queryKey: ['routines'] });
-      Alert.alert('Eklendi', 'Rutin tehdit listesine girdi.');
+      Alert.alert(tr('routine.addedTitle'), tr('routine.addedBody'));
     },
-    onError: (e: Error) => Alert.alert('Hata', e.message),
+    onError: (e: Error) => Alert.alert(tr('common.error'), e.message),
   });
 
   const complete = useMutation({
@@ -75,29 +87,26 @@ export default function RutinlerScreen() {
 
   return (
     <Screen
-      subtitle="Özel Hatırlatıcı / Rutin"
+      subtitle={tr('routine.subtitle')}
       refreshing={isFetching}
       onRefresh={() => refetch()}
     >
       <Pressable onPress={() => router.back()} style={styles.back}>
         <Ionicons name="arrow-back" size={18} color={colors.primaryContainer} />
-        <Text style={styles.backText}>Geri</Text>
+        <Text style={styles.backText}>{tr('routine.back')}</Text>
       </Pressable>
 
       {(timeline ?? []).some((t) => t.status === 'MISSED') && (
         <Card danger>
-          <Text style={styles.violation}>BUGÜNKÜ İHLAL RAPORU</Text>
-          <Text style={styles.body}>
-            Kaçırdığın seanslar için mahalle rezaleti azarı hoparlöre
-            basıldı.
-          </Text>
+          <Text style={styles.violation}>{tr('routine.violation')}</Text>
+          <Text style={styles.body}>{tr('routine.violationBody')}</Text>
         </Card>
       )}
 
       <View style={styles.rowBetween}>
-        <Text style={styles.title}>Günlük Zaman Çizelgesi</Text>
+        <Text style={styles.title}>{tr('routine.timeline')}</Text>
         <Text style={styles.metricLabel}>
-          {done}/{total} Planlı
+          {fillTemplate(tr('routine.planned'), { done, total })}
         </Text>
       </View>
 
@@ -105,7 +114,7 @@ export default function RutinlerScreen() {
         <Card key={log.id}>
           <View style={styles.rowBetween}>
             <Text style={styles.time}>
-              {new Date(log.plannedAt).toLocaleTimeString('tr-TR', {
+              {new Date(log.plannedAt).toLocaleTimeString(localeTag(locale), {
                 hour: '2-digit',
                 minute: '2-digit',
               })}{' '}
@@ -124,10 +133,10 @@ export default function RutinlerScreen() {
               }}
             >
               {log.status === 'COMPLETED'
-                ? 'Tamamlandı'
+                ? tr('routine.done')
                 : log.status === 'MISSED'
-                  ? 'Kaçırıldı!'
-                  : 'Bekliyor'}
+                  ? tr('routine.missed')
+                  : tr('routine.pending')}
             </Text>
           </View>
           <Text style={styles.itemTitle}>{log.routine.title}</Text>
@@ -138,18 +147,28 @@ export default function RutinlerScreen() {
             {log.status !== 'COMPLETED' && (
               <PrimaryButton
                 label={
-                  log.status === 'MISSED' ? 'Şimdi Telafi Et' : 'Önceden İçtim'
+                  log.status === 'MISSED'
+                    ? tr('routine.makeUp')
+                    : tr('routine.drankEarly')
                 }
                 onPress={() => complete.mutate(log.id)}
                 style={{ flex: 1 }}
               />
             )}
             <PrimaryButton
-              label="Cezayı Dinle"
+              label={tr('routine.listen')}
               variant="secondary"
               onPress={() =>
                 speakThreat(
-                  `Ulan ${log.routine.title} seansını kaçırma! ${log.routine.amountMl} ml hemen iç!`,
+                  fillTemplate(
+                    plus18
+                      ? tr('routine.listenPlus18')
+                      : tr('routine.listenSafe'),
+                    {
+                      title: log.routine.title,
+                      ml: log.routine.amountMl,
+                    },
+                  ),
                 )
               }
               style={{ flex: 1 }}
@@ -159,18 +178,15 @@ export default function RutinlerScreen() {
       ))}
 
       <Card style={{ backgroundColor: colors.secondaryContainer }}>
-        <Text style={styles.title}>Kafein & Alkol Dengeleme Algoritması</Text>
-        <Text style={styles.body}>
-          Espresso +150ml · Filtre kahve +200ml · Alkol +500ml otomatik su
-          borcu.
-        </Text>
+        <Text style={styles.title}>{tr('routine.caffeineTitle')}</Text>
+        <Text style={styles.body}>{tr('routine.caffeineBody')}</Text>
       </Card>
 
       <Card>
-        <Text style={styles.title}>Yeni Rutin / Takviye Ekle</Text>
+        <Text style={styles.title}>{tr('routine.addTitle')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Başlık"
+          placeholder={tr('routine.placeholderTitle')}
           placeholderTextColor={colors.muted}
           value={title}
           onChangeText={setTitle}
@@ -195,9 +211,9 @@ export default function RutinlerScreen() {
         <View style={styles.intensityRow}>
           {(
             [
-              ['LIGHT', 'Hafif Alaycı'],
-              ['HARD', 'Sert Tokat'],
-              ['SIREN', 'Acil Siren'],
+              ['LIGHT', tr('routine.intensity.light')],
+              ['HARD', tr('routine.intensity.hard')],
+              ['SIREN', tr('routine.intensity.siren')],
             ] as const
           ).map(([k, label]) => (
             <Pressable
@@ -220,17 +236,14 @@ export default function RutinlerScreen() {
           ))}
         </View>
         <PrimaryButton
-          label="+ Bu Rutini Tehdit Listesine Ekle"
+          label={tr('routine.addBtn')}
           onPress={() => create.mutate()}
           loading={create.isPending}
           style={{ marginTop: 10 }}
         />
       </Card>
 
-      <PrimaryButton
-        label="Rutinleri & Cezaları Senkronize Et"
-        onPress={() => refetch()}
-      />
+      <PrimaryButton label={tr('routine.sync')} onPress={() => refetch()} />
     </Screen>
   );
 }
@@ -238,21 +251,21 @@ export default function RutinlerScreen() {
 const styles = StyleSheet.create({
   back: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   backText: { color: colors.primaryContainer, fontWeight: '700' },
-  violation: { color: colors.error, fontWeight: '800', letterSpacing: 0.5 },
-  body: { color: colors.onSurfaceVariant, marginTop: 6, fontSize: 13 },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   title: { color: colors.onSurface, fontSize: 16, fontWeight: '800' },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
-  time: { color: colors.primaryContainer, fontWeight: '700' },
+  metricLabel: { color: colors.onSurfaceVariant, fontSize: 11, fontWeight: '700' },
+  violation: { color: colors.error, fontWeight: '800', fontSize: 12 },
+  body: { color: colors.onSurfaceVariant, fontSize: 13, marginTop: 6 },
+  time: { color: colors.primaryContainer, fontWeight: '700', fontSize: 12 },
   itemTitle: { color: colors.onSurface, fontWeight: '700', marginTop: 6 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 10 },
   input: {
-    backgroundColor: colors.surfaceContainerHigh,
-    borderRadius: 10,
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: 12,
     padding: 12,
     color: colors.onSurface,
     marginTop: 8,
@@ -265,6 +278,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: colors.surfaceContainerHighest,
   },
-  intensityActive: { backgroundColor: colors.danger },
+  intensityActive: { backgroundColor: colors.accent },
   intensityText: { color: colors.onSurfaceVariant, fontSize: 11, fontWeight: '700' },
 });

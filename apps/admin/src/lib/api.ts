@@ -64,6 +64,33 @@ export type AdminUser = {
   avatarUrl: string | null;
 };
 
+export type AdminUserDetail = AdminUser & {
+  lastGoalDate: string | null;
+  plus18Mode: boolean;
+  onboardingCompleted: boolean;
+  voiceNotifications: boolean;
+  activeCharacter: { id: string; name: string; slug: string } | null;
+};
+
+export type ActivityType = 'intake' | 'threat' | 'routine';
+
+export type ActivityItem = {
+  id: string;
+  type: ActivityType;
+  summary: string;
+  detail: string | null;
+  amountMl: number | null;
+  status: string | null;
+  at: string;
+};
+
+export type ActivityPage = {
+  items: ActivityItem[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
 export type CharacterRow = {
   id: string;
   slug: string;

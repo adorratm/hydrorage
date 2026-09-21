@@ -3,9 +3,11 @@ import { InjectEntityManager } from '@nestjs/typeorm';
 import { Queue, Worker, Job } from 'bullmq';
 import { EntityManager } from 'typeorm';
 import type Redis from 'ioredis';
-import { ThreatEvent } from '@/database/entities';
+import { t } from '@hydrorage/shared';
+import { ThreatEvent, UserSettings } from '@/database/entities';
 import { ThreatStatus } from '@/database/enums';
 import { RealtimeService } from '@/realtime/realtime.service';
+import { PushService } from '@/push/push.service';
 import { QUEUE_TOKENS, REDIS, THREATS_QUEUE } from '@/redis/redis.tokens';
 import { ThreatDueJob } from '@/queue/queue.types';
 
@@ -19,6 +21,7 @@ export class ThreatsQueueService implements OnModuleDestroy {
     @Inject(REDIS) private readonly redis: Redis,
     @InjectEntityManager() private readonly em: EntityManager,
     private readonly realtime: RealtimeService,
+    private readonly push: PushService,
   ) {}
 
   startWorker() {
@@ -33,11 +36,14 @@ export class ThreatsQueueService implements OnModuleDestroy {
     });
   }
 
-  async scheduleDue(threat: { id: string; userId: string; scheduledAt: Date }) {
+  async scheduleDue(
+    threat: { id: string; userId: string; scheduledAt: Date },
+    locale: 'tr' | 'en' = 'tr',
+  ) {
     const delay = Math.max(0, threat.scheduledAt.getTime() - Date.now());
     await this.queue.add(
       'threat-due',
-      { threatId: threat.id, userId: threat.userId },
+      { threatId: threat.id, userId: threat.userId, locale },
       {
         jobId: `threat-due-${threat.id}`,
         delay,
@@ -59,6 +65,20 @@ export class ThreatsQueueService implements OnModuleDestroy {
     });
     if (!threat || threat.status !== ThreatStatus.PENDING) return;
     this.realtime.threatDue(threat.userId, threat);
+
+    const settings = await this.em.findOneBy(UserSettings, {
+      userId: threat.userId,
+    });
+    const plus18 = settings?.plus18Mode !== false;
+    const locale = job.data.locale === 'en' ? 'en' : 'tr';
+    await this.push.sendToUser(threat.userId, {
+      title: t(
+        locale,
+        plus18 ? 'tone.notifTitlePlus18' : 'tone.notifTitleSafe',
+      ),
+      body: threat.message,
+      data: { threatId: threat.id, type: 'threat-due' },
+    });
   }
 
   async onModuleDestroy() {

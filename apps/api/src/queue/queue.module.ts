@@ -16,6 +16,7 @@ import {
 } from '@/redis/redis.tokens';
 import { RealtimeModule } from '@/realtime/realtime.module';
 import { TemplatesModule } from '@/templates/templates.module';
+import { PushModule } from '@/push/push.module';
 import { ThreatsQueueService } from '@/queue/threats-queue.service';
 import { RoutinesQueueService } from '@/queue/routines-queue.service';
 import { BullBoardService } from '@/queue/bull-board.service';
@@ -23,7 +24,7 @@ import { ThreatDueJob, RoutineSweepJob } from '@/queue/queue.types';
 
 @Global()
 @Module({
-  imports: [RedisModule, RealtimeModule, TemplatesModule],
+  imports: [RedisModule, RealtimeModule, TemplatesModule, PushModule],
   providers: [
     {
       provide: QUEUE_TOKENS.THREATS,

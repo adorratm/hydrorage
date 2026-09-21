@@ -1,10 +1,16 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager, MoreThanOrEqual } from 'typeorm';
+import {
+  fillTemplate,
+  t,
+  type AppLocale,
+} from '@hydrorage/shared';
 import { Intake, ThreatEvent, User } from '@/database/entities';
 import { DrinkType, ThreatStatus } from '@/database/enums';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
+import { Locale } from '@/common/locale';
 
 @Controller('stats')
 @UseGuards(JwtAuthGuard)
@@ -12,7 +18,10 @@ export class StatsController {
   constructor(@InjectEntityManager() private readonly em: EntityManager) {}
 
   @Get('weekly')
-  async weekly(@CurrentUser() user: { userId: string }) {
+  async weekly(
+    @CurrentUser() user: { userId: string },
+    @Locale() locale: AppLocale,
+  ) {
     const me = await this.em.findOneByOrFail(User, { id: user.userId });
     const start = startOfWeek(new Date());
     const intakes = await this.em.find(Intake, {
@@ -23,7 +32,15 @@ export class StatsController {
       relations: { character: true, template: true },
     });
 
-    const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    const days = [
+      t(locale, 'web.day.mon'),
+      t(locale, 'web.day.tue'),
+      t(locale, 'web.day.wed'),
+      t(locale, 'web.day.thu'),
+      t(locale, 'web.day.fri'),
+      t(locale, 'web.day.sat'),
+      t(locale, 'web.day.sun'),
+    ];
     const daily = days.map((label, i) => {
       const dayStart = new Date(start);
       dayStart.setDate(start.getDate() + i);
@@ -44,7 +61,9 @@ export class StatsController {
         tone,
         callout:
           tone === 'fail' && liters > 0
-            ? `${liters.toFixed(1)}L - Abi`
+            ? fillTemplate(t(locale, 'api.stats.callout'), {
+                liters: liters.toFixed(1),
+              })
             : null,
       };
     });
@@ -110,45 +129,53 @@ export class StatsController {
       string,
       { text: string; count: number; characterName: string; maxDb: number }
     >();
-    for (const t of threats) {
-      const key = t.templateId ?? t.message.slice(0, 40);
+    for (const th of threats) {
+      const key = th.templateId ?? th.message.slice(0, 40);
       const prev = topTemplates.get(key);
       if (prev) prev.count += 1;
       else
         topTemplates.set(key, {
-          text: t.message,
+          text: th.message,
           count: 1,
-          characterName: t.character?.name ?? 'Sistem',
-          maxDb: t.character?.maxDb ?? 96,
+          characterName:
+            th.character?.name ?? t(locale, 'api.stats.system'),
+          maxDb: th.character?.maxDb ?? 96,
         });
     }
     const topScolds = [...topTemplates.values()]
       .sort((a, b) => b.count - a.count)
       .slice(0, 3);
 
-    let grade = 'İFLAH OLMAZ';
-    if (kidneyIndex >= 85) grade = 'FENA DEĞİL';
-    else if (kidneyIndex >= 70) grade = 'SINIRDA';
-    else if (kidneyIndex >= 50) grade = 'RİSKLİ';
+    let grade = t(locale, 'api.stats.grade.hopeless');
+    if (kidneyIndex >= 85) grade = t(locale, 'api.stats.grade.ok');
+    else if (kidneyIndex >= 70) grade = t(locale, 'api.stats.grade.edge');
+    else if (kidneyIndex >= 50) grade = t(locale, 'api.stats.grade.risk');
 
     return {
       rageLevel,
       grade,
       flavorText:
         kidneyIndex < 70
-          ? 'Böbreklerin feryat figan ağlıyor, kulaklar çınlıyor.'
-          : 'Bu hafta idare ettin ama temponu bozma.',
+          ? t(locale, 'api.stats.flavor.low')
+          : t(locale, 'api.stats.flavor.ok'),
       scoldCount,
       missedGlasses,
       totalLiters,
       daily,
       topScolds,
       kidneyIndex,
-      risk: kidneyIndex < 70 ? 'YÜKSEK' : kidneyIndex < 85 ? 'ORTA' : 'DÜŞÜK',
+      risk:
+        kidneyIndex < 70
+          ? t(locale, 'api.stats.risk.high')
+          : kidneyIndex < 85
+            ? t(locale, 'api.stats.risk.mid')
+            : t(locale, 'api.stats.risk.low'),
       caffeineWaterRatio: `1:${ratio || 0}`,
       savedGlasses: `${completed}/${threats.length || 1}`,
       savedRate,
-      shareQuote: `Bu hafta tam ${scoldCount} kez azarlandım ama hala kahveye abanıyorum.`,
+      shareQuote: fillTemplate(t(locale, 'api.stats.share'), {
+        count: scoldCount,
+      }),
       dailyGoalMl: me.dailyGoalMl,
     };
   }

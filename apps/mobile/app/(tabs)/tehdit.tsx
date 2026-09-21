@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { fillTemplate, localizeCharacter } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -17,13 +18,18 @@ import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
 import { scheduleWaterReminder } from '@/lib/notifications';
 import { colors } from '@/constants/theme';
+import { fallbackThreat, isPlus18 } from '@/lib/tone';
+import { getLocale, setLocale, useLocale, useT } from '@/lib/i18n';
 
 type Settings = {
   voiceNotifications: boolean;
-  profanityLevel: 'MOCKING' | 'NEIGHBORHOOD' | 'MILITARY' | 'UNFILTERED';
+  plus18Mode: boolean;
+  profanityLevel: 'SAFE' | 'MOCKING' | 'NEIGHBORHOOD' | 'MILITARY' | 'UNFILTERED';
   activeCharacterId: string | null;
   officeMute: boolean;
   nightMode: boolean;
+  publicShameProtection: boolean;
+  whisperVolume: number;
   remindWater: boolean;
   remindCaffeine: boolean;
   remindMedicine: boolean;
@@ -38,29 +44,36 @@ type Character = {
   slug: string;
   name: string;
   unlocked: boolean;
+  unlockStreakDays?: number;
 };
 
-const LEVELS = [
-  { key: 'MOCKING', label: 'Alaycı' },
-  { key: 'NEIGHBORHOOD', label: 'Mahalle' },
-  { key: 'MILITARY', label: 'Askeriye' },
-  { key: 'UNFILTERED', label: 'Filtresiz 🔥' },
-] as const;
-
 export default function TehditScreen() {
+  const tr = useT();
   const router = useRouter();
   const qc = useQueryClient();
-  const [preview, setPreview] = useState(
-    'Kalk o suyu iç lan artık! Böbreklerin çöl kumuna döndü kurumuşsun!',
-  );
+  const locale = useLocale();
+  const [preview, setPreview] = useState(() => fallbackThreat(true, locale));
+
+  const LEVELS = [
+    { key: 'MOCKING' as const, label: tr('threat.level.mocking') },
+    { key: 'NEIGHBORHOOD' as const, label: tr('threat.level.neighborhood') },
+    { key: 'MILITARY' as const, label: tr('threat.level.military') },
+    { key: 'UNFILTERED' as const, label: tr('threat.level.unfiltered') },
+  ];
 
   const { data: settings, isFetching, refetch } = useQuery({
-    queryKey: ['settings'],
+    queryKey: ['settings', locale],
     queryFn: () => api<Settings>('/settings'),
   });
 
+  const plus18 = isPlus18(settings);
+
+  useEffect(() => {
+    setPreview(fallbackThreat(plus18, locale));
+  }, [locale, plus18]);
+
   const { data: characters } = useQuery({
-    queryKey: ['characters'],
+    queryKey: ['characters', locale],
     queryFn: () => api<Character[]>('/characters'),
   });
 
@@ -68,7 +81,7 @@ export default function TehditScreen() {
     mutationFn: (body: Partial<Settings>) =>
       api('/settings', { method: 'PATCH', body: JSON.stringify(body) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
-    onError: (e: Error) => Alert.alert('Hata', e.message),
+    onError: (e: Error) => Alert.alert(tr('common.error'), e.message),
   });
 
   const patch = (body: Partial<Settings>) => save.mutate(body);
@@ -88,7 +101,7 @@ export default function TehditScreen() {
         characterSlug: slug,
       });
     } catch (e: any) {
-      Alert.alert('Hata', e.message);
+      Alert.alert(tr('common.error'), e.message);
     }
   };
 
@@ -101,109 +114,225 @@ export default function TehditScreen() {
       await scheduleWaterReminder(
         settings?.waterIntervalMinutes ?? 45,
         threat.message,
+        plus18,
       );
-      Alert.alert('Tehdit aktif', 'Azar motoru çalışıyor. Su iç.');
+      Alert.alert(tr('threat.title'), tr('threat.start'));
     } catch (e: any) {
-      Alert.alert('Hata', e.message);
+      Alert.alert(tr('common.error'), e.message);
     }
   };
 
+  const mins = settings?.waterIntervalMinutes ?? 45;
+
   return (
     <Screen
-      subtitle="Bildirim & Tehdit Ayarları"
+      subtitle={tr('threat.title')}
       refreshing={isFetching}
       onRefresh={() => refetch()}
       onPressVolume={onTest}
     >
-      <Card danger>
-        <Text style={styles.heroTitle}>Tehdit Aktif +18 Şiddet</Text>
+      <Card danger={plus18}>
+        <Text style={[styles.heroTitle, !plus18 && styles.heroTitleSafe]}>
+          {plus18 ? tr('threat.plus18') : tr('threat.safe')}
+        </Text>
         <Text style={styles.heroBody}>
-          Su içmezsen desibel ve küfür frekansı artar. Bahanen yok.
+          {plus18 ? tr('threat.heroPlus18') : tr('threat.heroSafe')}
         </Text>
       </Card>
 
       <Card>
         <View style={styles.rowBetween}>
-          <Text style={styles.title}>Azar & Tehdit Motoru</Text>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.title}>{tr('threat.plus18')}</Text>
+            <Text style={styles.metricLabel}>
+              {plus18 ? tr('threat.plus18') : tr('threat.safe')}
+            </Text>
+          </View>
+          <Switch
+            value={plus18}
+            onValueChange={(v) => {
+              patch({ plus18Mode: v });
+              setPreview(fallbackThreat(v, locale));
+            }}
+            trackColor={{ true: colors.primaryContainer }}
+            accessibilityLabel={tr('threat.plus18')}
+          />
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={styles.title}>{tr('common.language')}</Text>
+        <View style={styles.levelRow}>
+          {(['tr', 'en'] as const).map((code) => (
+            <Pressable
+              key={code}
+              onPress={() => {
+                void setLocale(code).then(() => {
+                  void qc.invalidateQueries();
+                });
+              }}
+              style={[
+                styles.levelChip,
+                locale === code && styles.levelActive,
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: locale === code }}
+              accessibilityLabel={code === 'tr' ? 'Türkçe' : 'English'}
+            >
+              <Text
+                style={[
+                  styles.levelText,
+                  locale === code && { color: colors.onPrimary },
+                ]}
+              >
+                {code === 'tr' ? 'Türkçe' : 'English'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={[styles.metricLabel, { marginTop: 8 }]}>
+          {fillTemplate(tr('threat.localeActive'), {
+            code: getLocale().toUpperCase(),
+          })}
+        </Text>
+      </Card>
+
+      <Card>
+        <View style={styles.rowBetween}>
+          <Text style={styles.title}>
+            {plus18 ? tr('threat.enginePlus18') : tr('threat.engineSafe')}
+          </Text>
           <View style={styles.live}>
-            <Text style={styles.liveText}>CANLI</Text>
+            <Text style={styles.liveText}>{tr('threat.live')}</Text>
           </View>
         </View>
         <View style={styles.rowBetween}>
-          <Text style={styles.body}>Sesli Küfürlü Bildirimler</Text>
+          <Text style={styles.body}>
+            {plus18 ? tr('threat.voicePlus18') : tr('threat.voiceSafe')}
+          </Text>
           <Switch
             value={settings?.voiceNotifications ?? true}
             onValueChange={(v) => patch({ voiceNotifications: v })}
             trackColor={{ true: colors.primaryContainer }}
           />
         </View>
-        <Text style={[styles.metricLabel, { marginTop: 12 }]}>Küfür Seviyesi</Text>
-        <View style={styles.levelRow}>
-          {LEVELS.map((l) => (
+        {plus18 && (
+          <>
+            <Text style={[styles.metricLabel, { marginTop: 12 }]}>
+              {tr('threat.profanityLevel')}
+            </Text>
+            <View style={styles.levelRow}>
+              {LEVELS.map((l) => (
+                <Pressable
+                  key={l.key}
+                  onPress={() => patch({ profanityLevel: l.key })}
+                  style={[
+                    styles.levelChip,
+                    settings?.profanityLevel === l.key && styles.levelActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.levelText,
+                      settings?.profanityLevel === l.key && {
+                        color: colors.onPrimary,
+                      },
+                    ]}
+                  >
+                    {l.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+        <Text style={[styles.metricLabel, { marginTop: 12 }]}>
+          {tr('threat.voiceCharacter')}
+        </Text>
+        {(characters ?? []).map((c) => {
+          const meta = localizeCharacter(c.slug, locale, { name: c.name });
+          return (
             <Pressable
-              key={l.key}
-              onPress={() => patch({ profanityLevel: l.key })}
+              key={c.id}
+              onPress={() => {
+                if (!c.unlocked) {
+                  Alert.alert(
+                    tr('threat.locked'),
+                    fillTemplate(tr('threat.lockedBody'), {
+                      days: c.unlockStreakDays ?? '?',
+                    }),
+                  );
+                  return;
+                }
+                patch({ activeCharacterId: c.id });
+              }}
               style={[
-                styles.levelChip,
-                settings?.profanityLevel === l.key && styles.levelActive,
+                styles.charRow,
+                settings?.activeCharacterId === c.id && styles.charActive,
+                !c.unlocked && { opacity: 0.5 },
               ]}
             >
-              <Text
-                style={[
-                  styles.levelText,
-                  settings?.profanityLevel === l.key && {
-                    color: colors.onPrimary,
-                  },
-                ]}
-              >
-                {l.label}
+              <Ionicons
+                name={
+                  !c.unlocked
+                    ? 'lock-closed'
+                    : settings?.activeCharacterId === c.id
+                      ? 'radio-button-on'
+                      : 'radio-button-off'
+                }
+                size={18}
+                color={colors.primaryContainer}
+              />
+              <Text style={styles.charName}>
+                {meta.name}
+                {!c.unlocked ? ` · ${c.unlockStreakDays}d` : ''}
               </Text>
             </Pressable>
-          ))}
-        </View>
-        <Text style={[styles.metricLabel, { marginTop: 12 }]}>Ses / Karakter</Text>
-        {(characters ?? []).map((c) => (
-          <Pressable
-            key={c.id}
-            onPress={() => patch({ activeCharacterId: c.id })}
-            style={[
-              styles.charRow,
-              settings?.activeCharacterId === c.id && styles.charActive,
-            ]}
-          >
-            <Ionicons
-              name={
-                settings?.activeCharacterId === c.id
-                  ? 'radio-button-on'
-                  : 'radio-button-off'
-              }
-              size={18}
-              color={colors.primaryContainer}
-            />
-            <Text style={styles.charName}>{c.name}</Text>
-          </Pressable>
-        ))}
+          );
+        })}
       </Card>
 
       <Card>
-        <Text style={styles.metricLabel}>96 DB ALARM</Text>
+        <Text style={styles.metricLabel}>
+          {plus18 ? tr('threat.alarm96') : tr('threat.previewSafe')}
+        </Text>
         <Text style={styles.preview}>“{preview}”</Text>
         <PrimaryButton
-          label="Hoparlörden Test Et (+96dB)"
+          label={tr('threat.listen')}
           variant="violet"
           onPress={onTest}
         />
       </Card>
 
       <Card>
-        <Text style={styles.title}>Neleri Hatırlatsın?</Text>
+        <Text style={styles.title}>{tr('threat.remindTitle')}</Text>
         {(
           [
-            ['remindWater', 'Su Hatırlatıcı', `Her ${settings?.waterIntervalMinutes ?? 45} dk`],
-            ['remindCaffeine', 'Kahve & Kafein Limiti', '3 bardaktan sonra'],
-            ['remindMedicine', 'İlaç & Takviye Saatleri', 'B12, Magnezyum'],
-            ['remindElectrolyte', 'Bitki Çayı & Elektrolit', 'Akşam'],
-            ['remindWalk', 'Kalk Dolaş', 'Ekrana yapışma'],
+            [
+              'remindWater',
+              tr('threat.remind.water'),
+              fillTemplate(tr('threat.remind.waterHint'), { mins }),
+            ],
+            [
+              'remindCaffeine',
+              tr('threat.remind.caffeine'),
+              tr('threat.remind.caffeineHint'),
+            ],
+            [
+              'remindMedicine',
+              tr('threat.remind.medicine'),
+              tr('threat.remind.medicineHint'),
+            ],
+            [
+              'remindElectrolyte',
+              tr('threat.remind.electrolyte'),
+              tr('threat.remind.electrolyteHint'),
+            ],
+            [
+              'remindWalk',
+              tr('threat.remind.walk'),
+              tr('threat.remind.walkHint'),
+            ],
           ] as const
         ).map(([key, label, hint]) => (
           <View key={key} style={styles.checkRow}>
@@ -221,11 +350,57 @@ export default function TehditScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.title}>Rezil Olma Koruması</Text>
+        <Text style={styles.title}>
+          {plus18
+            ? tr('threat.protectionPlus18')
+            : tr('threat.protectionSafe')}
+        </Text>
         <View style={styles.checkRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.body}>Ofiste / Toplantıda Küfrü Kıs</Text>
-            <Text style={styles.metricLabel}>Gizli agresif titreşim</Text>
+            <Text style={styles.body}>{tr('threat.shame')}</Text>
+            <Text style={styles.metricLabel}>{tr('threat.shameHint')}</Text>
+          </View>
+          <Switch
+            value={settings?.publicShameProtection ?? true}
+            onValueChange={(v) => patch({ publicShameProtection: v })}
+            trackColor={{ true: colors.primaryContainer }}
+            accessibilityLabel={tr('threat.shame')}
+          />
+        </View>
+        <Text style={[styles.metricLabel, { marginTop: 4 }]}>
+          {fillTemplate(tr('threat.whisperVol'), {
+            vol: settings?.whisperVolume ?? 45,
+          })}
+        </Text>
+        <View style={styles.levelRow}>
+          {[0, 25, 45, 70].map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => patch({ whisperVolume: v })}
+              style={[
+                styles.levelChip,
+                (settings?.whisperVolume ?? 45) === v && styles.levelActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.levelText,
+                  (settings?.whisperVolume ?? 45) === v && {
+                    color: colors.onPrimary,
+                  },
+                ]}
+              >
+                {v === 0 ? tr('threat.silent') : `%${v}`}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <View style={styles.checkRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.body}>
+              {plus18 ? tr('threat.officePlus18') : tr('threat.officeSafe')}
+            </Text>
+            <Text style={styles.metricLabel}>{tr('threat.officeHint')}</Text>
           </View>
           <Switch
             value={settings?.officeMute ?? true}
@@ -235,8 +410,8 @@ export default function TehditScreen() {
         </View>
         <View style={styles.checkRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.body}>Gece Modu (23:00 - 08:00)</Text>
-            <Text style={styles.metricLabel}>Sessiz bildirim</Text>
+            <Text style={styles.body}>{tr('threat.night')}</Text>
+            <Text style={styles.metricLabel}>{tr('threat.nightHint')}</Text>
           </View>
           <Switch
             value={settings?.nightMode ?? true}
@@ -248,29 +423,29 @@ export default function TehditScreen() {
 
       <View style={styles.navLinks}>
         <PrimaryButton
-          label="Karakter Kütüphanesi"
+          label={tr('threat.characters')}
           variant="secondary"
           onPress={() => router.push('/tehdit/karakterler')}
         />
         <PrimaryButton
-          label="Rutin Planlayıcı"
+          label={tr('threat.routines')}
           variant="secondary"
           onPress={() => router.push('/tehdit/rutinler')}
         />
         <PrimaryButton
-          label="Şablonlarım"
+          label={tr('threat.templates')}
           variant="secondary"
           onPress={() => router.push('/tehdit/sablonlar')}
         />
       </View>
 
       <PrimaryButton
-        label="Ayarları Kaydet & Tehdidi Başlat"
+        label={tr('threat.start')}
         onPress={onSaveStart}
         loading={save.isPending}
       />
       <Text style={styles.disclaimer}>
-        Küfürlü içerikten geliştiriciler sorumlu değildir. Kendi rezilliğin.
+        {plus18 ? tr('threat.disclaimerPlus18') : tr('threat.disclaimerSafe')}
       </Text>
     </Screen>
   );
@@ -287,6 +462,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     textTransform: 'uppercase',
+  },
+  heroTitleSafe: {
+    color: colors.primaryContainer,
   },
   heroBody: { color: colors.onSurface, marginTop: 6, fontSize: 13 },
   title: { color: colors.primary, fontSize: 18, fontWeight: '800' },

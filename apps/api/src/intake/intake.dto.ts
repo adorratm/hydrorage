@@ -16,3 +16,22 @@ export class CreateIntakeDto {
   @IsString()
   note?: string;
 }
+
+export class UpdateIntakeDto {
+  @IsOptional()
+  @IsEnum(DrinkType)
+  type?: DrinkType;
+
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  amountMl?: number;
+
+  @IsOptional()
+  @IsString()
+  note?: string;
+}

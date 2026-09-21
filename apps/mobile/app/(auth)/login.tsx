@@ -6,14 +6,18 @@ import {
   Platform,
   Alert,
   Pressable,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import Constants from 'expo-constants';
 import { useAuth } from '@/lib/auth';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { colors, spacing } from '@/constants/theme';
+import { useT } from '@/lib/i18n';
 
 export default function LoginScreen() {
+  const tr = useT();
   const {
     signInWithGoogle,
     signInWithApple,
@@ -22,6 +26,12 @@ export default function LoginScreen() {
   } = useAuth();
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
+  const privacyUrl =
+    (Constants.expoConfig?.extra as { privacyPolicyUrl?: string })
+      ?.privacyPolicyUrl ?? 'https://hydrorage.com.tr/gizlilik';
+  const termsUrl =
+    (Constants.expoConfig?.extra as { termsUrl?: string })?.termsUrl ??
+    'https://hydrorage.com.tr/kosullar';
 
   const onGoogle = async () => {
     try {
@@ -29,7 +39,7 @@ export default function LoginScreen() {
       await signInWithGoogle();
     } catch (e: any) {
       if (e?.code === 'ERR_REQUEST_CANCELED') return;
-      Alert.alert('Google girişi başarısız', e.message || 'Bilinmeyen hata');
+      Alert.alert(tr('common.error'), e.message || tr('common.error'));
     } finally {
       setLoadingGoogle(false);
     }
@@ -41,7 +51,7 @@ export default function LoginScreen() {
       await signInWithApple();
     } catch (e: any) {
       if (e?.code === 'ERR_REQUEST_CANCELED') return;
-      Alert.alert('Apple girişi başarısız', e.message || 'Bilinmeyen hata');
+      Alert.alert(tr('common.error'), e.message || tr('common.error'));
     } finally {
       setLoadingApple(false);
     }
@@ -52,14 +62,11 @@ export default function LoginScreen() {
       <View style={styles.brand}>
         <Ionicons name="water" size={48} color={colors.primaryContainer} />
         <Text style={styles.title}>HydroRage</Text>
-        <Text style={styles.sub}>
-          Su içmezsen küfür yersin. Google ile gir
-          {Platform.OS === 'ios' ? ', iPhone’da Apple da olur' : ''}.
-        </Text>
+        <Text style={styles.sub}>{tr('login.tagline')}</Text>
       </View>
 
       <PrimaryButton
-        label="Google ile devam et"
+        label={tr('login.google')}
         onPress={onGoogle}
         loading={loadingGoogle}
         disabled={!googleReady}
@@ -76,20 +83,27 @@ export default function LoginScreen() {
       ) : null}
 
       {Platform.OS === 'ios' && appleAvailable && loadingApple ? (
-        <Text style={styles.hint}>Apple girişi hazırlanıyor…</Text>
+        <Text style={styles.hint}>{tr('common.loading')}</Text>
       ) : null}
 
-      {Platform.OS !== 'ios' ? (
-        <Text style={styles.hint}>
-          Apple ile giriş yalnızca iOS cihazlarda sunulur.
-        </Text>
-      ) : null}
-
-      <Pressable>
-        <Text style={styles.disclaimer}>
-          Giriş yaparak küfürlü bildirim tonunu kabul etmiş sayılırsın.
-        </Text>
-      </Pressable>
+      <Text style={styles.disclaimer}>{tr('login.legal')}</Text>
+      <View style={styles.legalRow}>
+        <Pressable
+          onPress={() => Linking.openURL(privacyUrl)}
+          accessibilityRole="link"
+          accessibilityLabel={tr('web.footer.privacy')}
+        >
+          <Text style={styles.legalLink}>{tr('web.footer.privacy')}</Text>
+        </Pressable>
+        <Text style={styles.hint}>·</Text>
+        <Pressable
+          onPress={() => Linking.openURL(termsUrl)}
+          accessibilityRole="link"
+          accessibilityLabel={tr('web.footer.terms')}
+        >
+          <Text style={styles.legalLink}>{tr('web.footer.terms')}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -120,5 +134,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
     marginTop: 8,
+  },
+  legalRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  legalLink: {
+    color: colors.primaryContainer,
+    fontSize: 12,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });

@@ -1,22 +1,27 @@
-import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Alert,
-} from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { RadialProgress } from '@/components/RadialProgress';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { EmptyState } from '@/components/EmptyState';
+import { StreakPanel } from '@/components/StreakPanel';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
-import { colors, spacing } from '@/constants/theme';
-import { QUICK_ADD_PRESETS, DEFAULT_QUICK_DRINK_ML } from '@hydrorage/shared';
+import { colors } from '@/constants/theme';
+import {
+  QUICK_ADD_PRESETS,
+  DEFAULT_QUICK_DRINK_ML,
+  localeTag,
+} from '@hydrorage/shared';
+import { buildWidgetPayload, publishWidgetPayload } from '@/lib/widget';
+import { useLocale, useT } from '@/lib/i18n';
+import { showAlert } from '@/lib/dialog';
 
 type Dashboard = {
   goalMl: number;
@@ -43,10 +48,48 @@ type Dashboard = {
 };
 
 export default function TakipScreen() {
+  const tr = useT();
+  const locale = useLocale();
+  const tag = localeTag(locale);
+  const router = useRouter();
   const qc = useQueryClient();
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ['dashboard', locale],
     queryFn: () => api<Dashboard>('/dashboard/today'),
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    void publishWidgetPayload(
+      buildWidgetPayload({ netMl: data.netMl, goalMl: data.goalMl }),
+    );
+  }, [data?.netMl, data?.goalMl]);
+
+  useEffect(() => {
+    const streak = data?.streakDays ?? 0;
+    if (![7, 14, 30].includes(streak)) return;
+    const key = `streak-celebrated-${streak}`;
+    void AsyncStorage.getItem(key).then((v) => {
+      if (v) return;
+      showAlert(
+        `${tr('track.streak')}!`,
+        `${streak} · ${tr('track.streak')}`,
+      );
+      void AsyncStorage.setItem(key, '1');
+    });
+  }, [data?.streakDays, tr]);
+
+  const snooze = useMutation({
+    mutationFn: (id: string) =>
+      api(`/threats/${id}/snooze`, {
+        method: 'POST',
+        body: JSON.stringify({ minutes: 5 }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      showAlert(tr('common.ok'), tr('web.phone.snooze'));
+    },
+    onError: (e: Error) => showAlert(tr('common.error'), e.message),
   });
 
   const intakeMutation = useMutation({
@@ -64,8 +107,31 @@ export default function TakipScreen() {
       qc.invalidateQueries({ queryKey: ['dashboard'] });
       qc.invalidateQueries({ queryKey: ['intake'] });
     },
-    onError: (e: Error) => Alert.alert('Hata', e.message),
+    onError: (e: Error) => showAlert(tr('common.error'), e.message),
   });
+
+  const playHeaderVolume = useCallback(async () => {
+    if (data?.nextThreat?.message) {
+      await speakThreat(data.nextThreat.message);
+      return;
+    }
+    try {
+      const res = await api<{ message: string }>('/threats/preview', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      await speakThreat(res.message, false, { forceSpeak: true });
+    } catch (e) {
+      await speakThreat(
+        tr('track.voiceTest'),
+        false,
+        { forceSpeak: true },
+      );
+      if (e instanceof Error) {
+        console.warn('[volume]', e.message);
+      }
+    }
+  }, [data?.nextThreat?.message, tr]);
 
   const minsLeft = data?.nextThreat
     ? Math.max(
@@ -81,72 +147,97 @@ export default function TakipScreen() {
     (preset: (typeof QUICK_ADD_PRESETS)[number]) => {
       intakeMutation.mutate({
         type: preset.type,
-        label: preset.label,
+        label: tr(preset.labelKey),
         amountMl: preset.amountMl,
       });
     },
-    [intakeMutation],
+    [intakeMutation, tr],
   );
 
   return (
     <Screen
-      subtitle="Anasayfa / Takip"
+      subtitle={tr('track.home')}
       refreshing={isFetching}
       onRefresh={() => refetch()}
-      onPressVolume={() =>
-        data?.nextThreat && speakThreat(data.nextThreat.message)
-      }
+      onPressVolume={() => void playHeaderVolume()}
     >
       <Card>
         <View style={styles.rowBetween}>
           <View style={styles.row}>
             <View style={styles.dot} />
             <Text style={styles.labelError}>
-              Sıradaki Tehdit:{' '}
+              {tr('threat.title')}:{' '}
               {data?.nextThreat
                 ? new Date(data.nextThreat.scheduledAt).toLocaleTimeString(
-                    'tr-TR',
+                    tag,
                     { hour: '2-digit', minute: '2-digit' },
                   )
                 : '--:--'}
             </Text>
           </View>
           <Text style={styles.chip}>
-            {minsLeft != null ? `${minsLeft} dk kaldı` : 'Yok'}
+            {minsLeft != null ? `${minsLeft} dk` : '—'}
           </Text>
         </View>
-        <View style={styles.threatBox}>
-          <Ionicons name="megaphone" size={20} color={colors.error} />
-          <Text style={styles.threatText} numberOfLines={2}>
-            “
-            {data?.nextThreat?.message ??
-              'Henüz planlı tehdit yok. Su içmeyi unutursan geliriz.'}
-            ”
-          </Text>
-          <Pressable
-            style={styles.listenBtn}
-            onPress={() =>
-              speakThreat(
-                data?.nextThreat?.message ??
-                  'Kalk o suyu iç lan artık!',
-              )
-            }
-          >
-            <Ionicons name="volume-high" size={14} color={colors.primaryContainer} />
-            <Text style={styles.listenText}>Dinle</Text>
-          </Pressable>
-        </View>
+        {data?.nextThreat ? (
+          <View style={styles.threatBox}>
+            <Ionicons name="megaphone" size={20} color={colors.error} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.threatText} numberOfLines={2}>
+                “{data.nextThreat.message}”
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <Pressable
+                  style={styles.listenBtn}
+                  onPress={() => speakThreat(data.nextThreat!.message)}
+                  accessibilityRole="button"
+                  accessibilityLabel={tr('threat.listen')}
+                >
+                  <Ionicons
+                    name="volume-high"
+                    size={14}
+                    color={colors.primaryContainer}
+                  />
+                  <Text style={styles.listenText}>{tr('threat.listen')}</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.listenBtn}
+                  onPress={() => snooze.mutate(data.nextThreat!.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={tr('web.phone.snooze')}
+                >
+                  <Ionicons
+                    name="time-outline"
+                    size={14}
+                    color={colors.primaryContainer}
+                  />
+                  <Text style={styles.listenText}>{tr('web.phone.snooze')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.threatBoxEmpty}>
+            <EmptyState
+              icon="megaphone-outline"
+              title={tr('empty.threats')}
+              body={tr('empty.threatsBody')}
+              actionLabel={tr('threat.title')}
+              onAction={() => router.push('/(tabs)/tehdit')}
+            />
+          </View>
+        )}
       </Card>
 
       <Card>
         <View style={styles.rowBetween}>
           <View>
-            <Text style={styles.sectionLabel}>GÜNLÜK HEDEF</Text>
-            <Text style={styles.sectionTitle}>Günün Durumu</Text>
+            <Text style={styles.sectionLabel}>{tr('track.goal')}</Text>
+            <Text style={styles.sectionTitle}>{tr('track.title')}</Text>
           </View>
           <View style={styles.pctChip}>
             <Ionicons name="flash" size={14} color={colors.primaryContainer} />
-            <Text style={styles.pctText}>%{data?.percent ?? 0} Tamamlandı</Text>
+            <Text style={styles.pctText}>%{data?.percent ?? 0}</Text>
           </View>
         </View>
         <View style={styles.gaugeRow}>
@@ -155,70 +246,53 @@ export default function TakipScreen() {
             goal={data?.goalMl ?? 2500}
           />
           <View style={styles.metrics}>
-            <Text style={styles.metricLabel}>Kalan Hacim</Text>
+            <Text style={styles.metricLabel}>{tr('track.debt')}</Text>
             <Text style={styles.metricValue}>{data?.remaining ?? 0} ml</Text>
             <Text style={[styles.metricLabel, { marginTop: 8 }]}>
-              Optimal Aralık
-            </Text>
-            <Text style={styles.metricSecondary}>
-              Saatte ~{data?.optimalPerHour ?? 150} ml
+              ~{data?.optimalPerHour ?? 150} ml
             </Text>
             <View style={[styles.row, { marginTop: 10 }]}>
               <View style={styles.statusDot} />
               <Text style={styles.statusText}>
-                {data?.statusLabel ?? 'İDARE EDER DURUM'}
+                {data?.statusLabel ?? '—'}
               </Text>
             </View>
           </View>
         </View>
-        <View style={styles.streak}>
-          <View style={styles.row}>
-            <Ionicons name="flame" size={18} color={colors.secondaryFixedDim} />
-            <Text style={styles.streakText}>
-              Seri: <Text style={{ fontWeight: '800' }}>{data?.streakDays ?? 0} Gün</Text>{' '}
-              Dehidrasyonsuz
-            </Text>
-          </View>
-          <Text style={styles.pctText}>Temponu Bozma</Text>
-        </View>
+        <StreakPanel
+          streakDays={data?.streakDays ?? 0}
+          todayNetMl={data?.netMl ?? 0}
+          dailyGoalMl={data?.goalMl ?? 2500}
+        />
       </Card>
 
       <Card style={{ backgroundColor: colors.surfaceContainerHigh }}>
         <View style={styles.rowBetween}>
           <View style={styles.row}>
             <Ionicons name="warning" size={18} color={colors.error} />
-            <Text style={styles.sectionTitle}>Günün Azar Sayacı</Text>
-          </View>
-          <View style={styles.rageBadge}>
-            <Text style={styles.rageText}>RAGE MODE</Text>
+            <Text style={styles.sectionTitle}>{tr('stats.scolds')}</Text>
           </View>
         </View>
         <View style={styles.grid2}>
           <View style={styles.statBox}>
-            <Text style={styles.metricLabel}>Yediğin Fırça</Text>
+            <Text style={styles.metricLabel}>{tr('stats.scolds')}</Text>
             <Text style={styles.statError}>
-              {data?.scoldCount ?? 0}{' '}
-              <Text style={styles.statErrorSm}>Azar 😡</Text>
+              {data?.scoldCount ?? 0}
             </Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.metricLabel}>Tüketim / Kaçırılan</Text>
-            <Text style={styles.statPrimary}>
-              {data?.glasses ?? 0}{' '}
-              <Text style={styles.metricLabel}>Bardak</Text>{' '}
-              <Text style={styles.statErrorSm}>
-                ({data?.missedGlasses ?? 0} ⚠️)
-              </Text>
+            <Text style={styles.metricLabel}>
+              {data?.glasses ?? 0} / {data?.missedGlasses ?? 0}
             </Text>
           </View>
         </View>
         <PrimaryButton
-          label={`+ Suyu Dikledim! (${DEFAULT_QUICK_DRINK_ML} ml)`}
+          label={`${tr('track.drank')} (${DEFAULT_QUICK_DRINK_ML} ml)`}
           loading={intakeMutation.isPending}
           onPress={() =>
             intakeMutation.mutate({
               type: 'WATER',
-              label: 'Suyu Dikledim',
+              label: tr('track.drank'),
               amountMl: DEFAULT_QUICK_DRINK_ML,
             })
           }
@@ -228,13 +302,12 @@ export default function TakipScreen() {
 
       <View>
         <View style={styles.rowBetween}>
-          <Text style={styles.sectionTitle}>Hızlı Sıvı Ekle</Text>
-          <Text style={styles.metricLabel}>Hassas Tüketim</Text>
+          <Text style={styles.sectionTitle}>{tr('drinks.add')}</Text>
         </View>
         <View style={styles.quickGrid}>
           {QUICK_ADD_PRESETS.map((p) => (
             <Pressable
-              key={p.label}
+              key={p.labelKey}
               style={styles.quickCard}
               onPress={() => onQuick(p)}
             >
@@ -251,10 +324,10 @@ export default function TakipScreen() {
                   />
                 </View>
                 <View>
-                  <Text style={styles.quickLabel}>{p.label}</Text>
+                  <Text style={styles.quickLabel}>{tr(p.labelKey)}</Text>
                   <Text style={styles.quickAmount}>
                     +{p.amountMl} ml
-                    {'penaltyMl' in p ? ` (-${(p as any).penaltyMl} telafi)` : ''}
+                    {'penaltyMl' in p ? ` (-${(p as any).penaltyMl})` : ''}
                   </Text>
                 </View>
               </View>
@@ -265,27 +338,27 @@ export default function TakipScreen() {
       </View>
 
       <View>
-        <Text style={styles.sectionTitle}>Son Gelen Tehditler & Azarlar</Text>
-        {(data?.recentThreats ?? []).slice(0, 5).map((t) => (
-          <Card key={t.id} style={{ marginTop: 8 }}>
+        <Text style={styles.sectionTitle}>{tr('threat.title')}</Text>
+        {(data?.recentThreats ?? []).slice(0, 5).map((item) => (
+          <Card key={item.id} style={{ marginTop: 8 }}>
             <View style={styles.rowBetween}>
               <Text style={styles.metricLabel}>
-                {new Date(t.scheduledAt).toLocaleTimeString('tr-TR', {
+                {new Date(item.scheduledAt).toLocaleTimeString(tag, {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}
               </Text>
-              <Text style={styles.pctText}>{t.status}</Text>
+              <Text style={styles.pctText}>{item.status}</Text>
             </View>
-            <Text style={styles.threatListText}>“{t.message}”</Text>
-            <Pressable onPress={() => speakThreat(t.message)}>
-              <Text style={styles.listenText}>Sesli dinle</Text>
+            <Text style={styles.threatListText}>“{item.message}”</Text>
+            <Pressable onPress={() => speakThreat(item.message)}>
+              <Text style={styles.listenText}>{tr('threat.listen')}</Text>
             </Pressable>
           </Card>
         ))}
         {!data?.recentThreats?.length && (
           <Text style={[styles.metricLabel, { marginTop: 8 }]}>
-            Bugün henüz azar yok. Şimdilik.
+            {tr('empty.threats')}
           </Text>
         )}
       </View>
@@ -331,6 +404,16 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'flex-start',
   },
+  threatBoxEmpty: {
+    marginTop: 10,
+    backgroundColor: 'rgba(11,14,24,0.8)',
+    borderRadius: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
   threatText: {
     flex: 1,
     color: colors.error,
@@ -373,7 +456,6 @@ const styles = StyleSheet.create({
   metrics: { flex: 1, paddingLeft: 8 },
   metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
   metricValue: { color: colors.onSurface, fontSize: 18, fontWeight: '700' },
-  metricSecondary: { color: colors.secondaryFixedDim, fontSize: 12 },
   statusDot: {
     width: 8,
     height: 8,
@@ -386,23 +468,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.4,
   },
-  streak: {
-    marginTop: 12,
-    backgroundColor: colors.surfaceContainerHigh,
-    borderRadius: 10,
-    padding: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  streakText: { color: colors.onSurface, fontSize: 12 },
-  rageBadge: {
-    backgroundColor: colors.errorContainer,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-  },
-  rageText: { color: colors.error, fontSize: 10, fontWeight: '800' },
   grid2: { flexDirection: 'row', gap: 8, marginTop: 10 },
   statBox: {
     flex: 1,
@@ -411,8 +476,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   statError: { color: colors.error, fontSize: 22, fontWeight: '800' },
-  statErrorSm: { color: colors.error, fontSize: 10, fontWeight: '700' },
-  statPrimary: { color: colors.primary, fontSize: 22, fontWeight: '800' },
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   quickCard: {
     width: '48%',

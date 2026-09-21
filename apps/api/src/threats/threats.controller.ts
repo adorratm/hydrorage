@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager, MoreThanOrEqual } from 'typeorm';
-import { IsOptional, IsString } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import type { AppLocale } from '@hydrorage/shared';
 import {
   ThreatEvent,
   ThreatTemplate,
@@ -12,7 +22,8 @@ import { ThreatStatus } from '@/database/enums';
 import { TemplatesService } from '@/templates/templates.service';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
-import { fillTemplate, firstName } from '@/common/hydration';
+import { Locale } from '@/common/locale';
+import { fillTemplate, firstNameLocalized } from '@/common/copy';
 import { RealtimeService } from '@/realtime/realtime.service';
 import { ThreatsQueueService } from '@/queue/threats-queue.service';
 
@@ -20,6 +31,17 @@ class PreviewDto {
   @IsOptional()
   @IsString()
   templateId?: string;
+
+  @IsOptional()
+  @IsIn(['tr', 'en'])
+  locale?: AppLocale;
+}
+
+class SnoozeDto {
+  @IsInt()
+  @Min(1)
+  @Max(180)
+  minutes!: number;
 }
 
 @Controller('threats')
@@ -47,44 +69,62 @@ export class ThreatsController {
   async preview(
     @CurrentUser() user: { userId: string },
     @Body() dto: PreviewDto,
+    @Locale() headerLocale: AppLocale,
   ) {
+    const locale = dto.locale ?? headerLocale;
     const me = await this.em.findOneByOrFail(User, { id: user.userId });
     let text: string;
     let templateId: string | null = null;
     let characterId: string | null = null;
 
     if (dto.templateId) {
-      const tpl = await this.em.findOneBy(ThreatTemplate, {
-        id: dto.templateId,
+      const tpl = await this.em.findOne(ThreatTemplate, {
+        where: { id: dto.templateId },
+        relations: { character: true },
       });
-      text = tpl?.text ?? 'Kalk suyu iç!';
-      templateId = tpl?.id ?? null;
-      characterId = tpl?.characterId ?? null;
+      if (!tpl) {
+        text = this.templates.shortFallback(locale);
+      } else if (tpl.isSystem && locale === 'en') {
+        const picked = await this.templates.pickForUser(user.userId, locale);
+        text = picked.text;
+        templateId = tpl.id;
+        characterId = tpl.characterId;
+      } else {
+        text = tpl.text;
+        templateId = tpl.id;
+        characterId = tpl.characterId;
+      }
     } else {
-      const picked = await this.templates.pickForUser(user.userId);
+      const picked = await this.templates.pickForUser(user.userId, locale);
       text = picked.text;
       templateId = picked.templateId;
       characterId = picked.characterId;
     }
 
     return {
-      message: fillTemplate(text, { name: firstName(me.displayName), debtMl: 500 }),
+      message: fillTemplate(text, {
+        name: firstNameLocalized(me.displayName, locale),
+        debtMl: 500,
+      }),
       templateId,
       characterId,
     };
   }
 
   @Post('schedule-next')
-  async scheduleNext(@CurrentUser() user: { userId: string }) {
+  async scheduleNext(
+    @CurrentUser() user: { userId: string },
+    @Locale() locale: AppLocale,
+  ) {
     const settings = await this.em.findOneBy(UserSettings, {
       userId: user.userId,
     });
     const interval = settings?.waterIntervalMinutes ?? 45;
     const scheduledAt = new Date(Date.now() + interval * 60_000);
     const me = await this.em.findOneByOrFail(User, { id: user.userId });
-    const picked = await this.templates.pickForUser(user.userId);
+    const picked = await this.templates.pickForUser(user.userId, locale);
     const message = fillTemplate(picked.text, {
-      name: firstName(me.displayName),
+      name: firstNameLocalized(me.displayName, locale),
       debtMl: 300,
     });
     const threat = await this.em.save(
@@ -97,8 +137,40 @@ export class ThreatsController {
         scheduledAt,
       }),
     );
-    await this.threatsQueue.scheduleDue(threat);
+    await this.threatsQueue.scheduleDue(threat, locale);
     this.realtime.threatScheduled(user.userId, threat);
+    return threat;
+  }
+
+  @Post(':id/snooze')
+  async snooze(
+    @CurrentUser() user: { userId: string },
+    @Param('id') id: string,
+    @Body() dto: SnoozeDto,
+    @Locale() locale: AppLocale,
+  ) {
+    const threat = await this.em.findOneBy(ThreatEvent, { id });
+    if (!threat) throw new NotFoundException();
+    if (threat.userId !== user.userId) {
+      throw new ForbiddenException();
+    }
+    if (
+      threat.status !== ThreatStatus.PENDING &&
+      threat.status !== ThreatStatus.PLAYED
+    ) {
+      throw new ForbiddenException(
+        locale === 'en'
+          ? 'This threat cannot be snoozed'
+          : 'Bu tehdit ertelenemez',
+      );
+    }
+    threat.scheduledAt = new Date(Date.now() + dto.minutes * 60_000);
+    threat.status = ThreatStatus.PENDING;
+    threat.playedAt = null;
+    await this.em.save(threat);
+    await this.threatsQueue.cancelDue(threat.id);
+    await this.threatsQueue.scheduleDue(threat, locale);
+    this.realtime.threatSnoozed(user.userId, threat);
     return threat;
   }
 

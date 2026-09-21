@@ -55,6 +55,10 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   lastGoalDate!: Date | null;
 
+  /** Expo push token (ExponentPushToken[...]) */
+  @Column({ type: 'text', nullable: true })
+  expoPushToken!: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
@@ -155,6 +159,12 @@ export class UserSettings {
 
   @Column({ type: 'boolean', default: true })
   voiceNotifications!: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  plus18Mode!: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  onboardingCompleted!: boolean;
 
   @Column({
     type: 'enum',

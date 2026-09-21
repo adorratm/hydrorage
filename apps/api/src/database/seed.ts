@@ -58,7 +58,7 @@ async function main() {
       maxDb: 94,
       dosageLabel: 'Ağır',
       recordingCount: 36,
-      unlockStreakDays: 0,
+      unlockStreakDays: 3,
     },
     {
       slug: 'sinirli-balkan-annesi',
@@ -68,7 +68,7 @@ async function main() {
       maxDb: 91,
       dosageLabel: 'Duygusal',
       recordingCount: 32,
-      unlockStreakDays: 0,
+      unlockStreakDays: 5,
     },
     {
       slug: 'toksik-kurumsal-yonetici',
@@ -78,7 +78,7 @@ async function main() {
       maxDb: 88,
       dosageLabel: 'Kurumsal',
       recordingCount: 28,
-      unlockStreakDays: 0,
+      unlockStreakDays: 7,
     },
     {
       slug: 'dracula',
@@ -88,7 +88,7 @@ async function main() {
       maxDb: 99,
       dosageLabel: 'Vampirik',
       recordingCount: 30,
-      unlockStreakDays: 0,
+      unlockStreakDays: 10,
     },
     {
       slug: 'cavus-komutan',
@@ -98,7 +98,7 @@ async function main() {
       maxDb: 100,
       dosageLabel: 'Cezaevi',
       recordingCount: 26,
-      unlockStreakDays: 0,
+      unlockStreakDays: 14,
     },
     {
       slug: 'taksi-soforu',
@@ -108,7 +108,7 @@ async function main() {
       maxDb: 96,
       dosageLabel: 'Korna',
       recordingCount: 24,
-      unlockStreakDays: 0,
+      unlockStreakDays: 7,
     },
     {
       slug: 'zehirli-ex',
@@ -118,7 +118,7 @@ async function main() {
       maxDb: 93,
       dosageLabel: 'Toksik',
       recordingCount: 28,
-      unlockStreakDays: 0,
+      unlockStreakDays: 21,
     },
     {
       slug: 'acil-doktor',
@@ -128,7 +128,7 @@ async function main() {
       maxDb: 90,
       dosageLabel: 'IV Serum',
       recordingCount: 22,
-      unlockStreakDays: 0,
+      unlockStreakDays: 14,
     },
     {
       slug: 'gece-bekcisi',
@@ -138,7 +138,7 @@ async function main() {
       maxDb: 92,
       dosageLabel: 'Nöbet',
       recordingCount: 20,
-      unlockStreakDays: 0,
+      unlockStreakDays: 30,
     },
   ];
 
@@ -172,8 +172,76 @@ async function main() {
   const N = ProfanityLevel.NEIGHBORHOOD;
   const M = ProfanityLevel.MOCKING;
   const MIL = ProfanityLevel.MILITARY;
+  const S = ProfanityLevel.SAFE;
 
   const templates: Partial<ThreatTemplate>[] = [
+    // —— Güvenli mod (küfürsüz uyarılar) ——
+    {
+      text: '{{name}}, su içme zamanın geldi. Hidrasyon hedefin geride kalıyor.',
+      profanityLevel: S,
+      characterId: bro.id,
+    },
+    {
+      text: 'Kısa hatırlatma: bir bardak su iç. Böbreklerin teşekkür eder.',
+      profanityLevel: S,
+      characterId: bro.id,
+    },
+    {
+      text: 'Bugün +{{debtMl}} ml geridesin. Lütfen şimdi su iç.',
+      profanityLevel: S,
+      characterId: bro.id,
+    },
+    {
+      text: 'Antrenman hatırlatması: susuz kas verimsiz çalışır. 300 ml su, şimdi.',
+      profanityLevel: S,
+      characterId: coach.id,
+    },
+    {
+      text: '{{name}}, hücrelerin su bekliyor. Kısa bir mola verip bardaktan yudumla.',
+      profanityLevel: S,
+      characterId: coach.id,
+    },
+    {
+      text: 'Anne tavsiyesi: su içmeden saatler geçirme. Bir bardak yeter, hemen.',
+      profanityLevel: S,
+      characterId: mom.id,
+    },
+    {
+      text: 'Hidrasyon KPI’ın sarıya döndü. Aksiyon: 300 ml su, deadline şimdi.',
+      profanityLevel: S,
+      characterId: corp.id,
+    },
+    {
+      text: 'Klinik not: hafif dehidrasyon riski. Tedavi: oral su, 400 ml.',
+      profanityLevel: S,
+      characterId: doc.id,
+    },
+    {
+      text: 'Emir: 300 ml su. Disiplinle uygula, itiraz yok.',
+      profanityLevel: S,
+      characterId: cavus.id,
+    },
+    {
+      text: 'Gece hatırlatması: su borcun var. Kalk, bir yudum al, devam et.',
+      profanityLevel: S,
+      characterId: night.id,
+    },
+    {
+      text: 'Trafik gibi sıkışmış hissediyorsan su eksik olabilir. Bir bardak iç.',
+      profanityLevel: S,
+      characterId: taxi.id,
+    },
+    {
+      text: 'Küçük bir uyarı: su içmeyi ertelemek alışkanlık olur. Şimdi bir bardak.',
+      profanityLevel: S,
+      characterId: ex.id,
+    },
+    {
+      text: 'Kan değil, su eksik. Bardağı boş bırakma; gece daha iyi uyursun.',
+      profanityLevel: S,
+      characterId: drac.id,
+    },
+
     // —— Mahalle Abisi ——
     {
       text: 'Anasını siktiğimin kurusu, kalk o suyu iç lan! Böbreklerin çatır çatır kuruyor!',

@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { storageDelete, storageGet, storageSet } from '@/lib/storage';
+import { getLocale } from '@/lib/i18n';
 
 const fallbackHost =
   Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
@@ -73,6 +74,7 @@ export async function api<T>(
   const token = await getAccess();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'X-Locale': getLocale(),
     ...(options.headers as Record<string, string>),
   };
   if (token) headers.Authorization = `Bearer ${token}`;

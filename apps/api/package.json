@@ -28,7 +28,7 @@
     "@paralleldrive/cuid2": "^3.3.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "apple-signin-auth": "^2.1.0",
-    "bullmq": "^6.3.6",
+    "bullmq": "^6.3.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "edge-tts-universal": "^1.4.0",
@@ -47,14 +47,14 @@
   "devDependencies": {
     "@nestjs/cli": "^12.0.3",
     "@nestjs/schematics": "^12.0.3",
-    "@rspack/core": "^2.2.5",
+    "@rspack/core": "^2.2.6",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.6.1",
+    "@types/node": "^26.6.2",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.23.1",
     "@types/webpack-node-externals": "^3.0.4",
     "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "tsx": "^4.23.13",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "webpack-node-externals": "^3.0.0"
   }

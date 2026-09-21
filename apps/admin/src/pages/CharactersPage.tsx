@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api, type Overview } from '../lib/api';
+import { useLocale } from '../locale';
 
 export function CharactersPage() {
+  const { t } = useLocale();
   const [chars, setChars] = useState<Overview['characters'] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,11 +14,11 @@ export function CharactersPage() {
   }, []);
 
   if (error) return <p className="error">{error}</p>;
-  if (!chars) return <p className="muted">Yükleniyor…</p>;
+  if (!chars) return <p className="muted">{t('common.loading')}</p>;
 
   return (
     <>
-      <h1 className="page-title">Karakterler</h1>
+      <h1 className="page-title">{t('admin.characters.title')}</h1>
       <p className="page-sub">Tehdit sesleri ve unlock eşikleri</p>
       <div className="panel">
         <div className="cast-list">

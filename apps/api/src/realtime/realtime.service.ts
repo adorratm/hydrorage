@@ -18,6 +18,16 @@ export class RealtimeService {
     this.gateway.notifyDashboard(userId);
   }
 
+  intakeUpdated(userId: string, payload: unknown) {
+    this.emit(userId, RealtimeEvents.INTAKE_UPDATED, payload);
+    this.gateway.notifyDashboard(userId);
+  }
+
+  intakeDeleted(userId: string, payload: unknown) {
+    this.emit(userId, RealtimeEvents.INTAKE_DELETED, payload);
+    this.gateway.notifyDashboard(userId);
+  }
+
   threatScheduled(userId: string, payload: unknown) {
     this.emit(userId, RealtimeEvents.THREAT_SCHEDULED, payload);
     this.gateway.notifyDashboard(userId);
@@ -35,6 +45,11 @@ export class RealtimeService {
 
   threatCompleted(userId: string, payload: unknown) {
     this.emit(userId, RealtimeEvents.THREAT_COMPLETED, payload);
+    this.gateway.notifyDashboard(userId);
+  }
+
+  threatSnoozed(userId: string, payload: unknown) {
+    this.emit(userId, RealtimeEvents.THREAT_SNOOZED, payload);
     this.gateway.notifyDashboard(userId);
   }
 

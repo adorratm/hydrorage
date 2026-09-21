@@ -1,5 +1,11 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { TtsService } from '@/tts/tts.service';
 
@@ -13,6 +19,10 @@ class TtsDto {
   @IsString()
   @MaxLength(80)
   characterSlug?: string;
+
+  @IsOptional()
+  @IsIn(['tr', 'en'])
+  locale?: 'tr' | 'en';
 }
 
 @Controller('tts')
@@ -25,6 +35,7 @@ export class TtsController {
     const audio = await this.tts.synthesizeTurkish(
       dto.text,
       dto.characterSlug,
+      dto.locale ?? 'tr',
     );
     return {
       mimeType: 'audio/mpeg',

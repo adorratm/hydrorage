@@ -18,12 +18,225 @@ type VoiceProfile = {
   googlePitch: number;
 };
 
+type LocaleVoices = { tr: VoiceProfile; en: VoiceProfile };
+
+function enVoice(
+  edgeVoice: string,
+  googleName: string,
+  base: Omit<VoiceProfile, 'edgeVoice' | 'googleName'>,
+): VoiceProfile {
+  return { ...base, edgeVoice, googleName };
+}
+
 /**
  * Bağırma hissi = volume (pitch yükseltmek sesi inceltiyor).
  * Pitch ≈ 0; rate hafif.
  */
-const VOICE_BY_SLUG: Record<string, VoiceProfile> = {
+const VOICE_BY_SLUG: Record<string, LocaleVoices> = {
   'ofkeli-mahalle-abisi': {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '+4%',
+      pitch: '+0Hz',
+      volume: '+100%',
+      yell: 'yell',
+      googleName: 'tr-TR-Standard-B',
+      googleRate: 1.05,
+      googlePitch: 0,
+    },
+    en: enVoice('en-US-GuyNeural', 'en-US-Standard-B', {
+      rate: '+4%',
+      pitch: '+0Hz',
+      volume: '+100%',
+      yell: 'yell',
+      googleRate: 1.05,
+      googlePitch: 0,
+    }),
+  },
+  'agresif-fitness-kocu': {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '+8%',
+      pitch: '-2Hz',
+      volume: '+100%',
+      yell: 'bark',
+      googleName: 'tr-TR-Standard-D',
+      googleRate: 1.08,
+      googlePitch: -1,
+    },
+    en: enVoice('en-US-DavisNeural', 'en-US-Standard-D', {
+      rate: '+8%',
+      pitch: '-2Hz',
+      volume: '+100%',
+      yell: 'bark',
+      googleRate: 1.08,
+      googlePitch: -1,
+    }),
+  },
+  'sinirli-balkan-annesi': {
+    tr: {
+      edgeVoice: 'tr-TR-EmelNeural',
+      rate: '+3%',
+      pitch: '+1Hz',
+      volume: '+90%',
+      yell: 'scold',
+      googleName: 'tr-TR-Standard-A',
+      googleRate: 1.04,
+      googlePitch: 1,
+    },
+    en: enVoice('en-US-JennyNeural', 'en-US-Standard-F', {
+      rate: '+3%',
+      pitch: '+1Hz',
+      volume: '+90%',
+      yell: 'scold',
+      googleRate: 1.04,
+      googlePitch: 1,
+    }),
+  },
+  'toksik-kurumsal-yonetici': {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '-2%',
+      pitch: '+0Hz',
+      volume: '+40%',
+      yell: 'cold',
+      googleName: 'tr-TR-Standard-C',
+      googleRate: 0.98,
+      googlePitch: 0,
+    },
+    en: enVoice('en-US-GuyNeural', 'en-US-Standard-C', {
+      rate: '-2%',
+      pitch: '+0Hz',
+      volume: '+40%',
+      yell: 'cold',
+      googleRate: 0.98,
+      googlePitch: 0,
+    }),
+  },
+  dracula: {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '-5%',
+      pitch: '-6Hz',
+      volume: '+70%',
+      yell: 'growl',
+      googleName: 'tr-TR-Standard-B',
+      googleRate: 0.94,
+      googlePitch: -3,
+    },
+    en: enVoice('en-US-DavisNeural', 'en-US-Standard-B', {
+      rate: '-5%',
+      pitch: '-6Hz',
+      volume: '+70%',
+      yell: 'growl',
+      googleRate: 0.94,
+      googlePitch: -3,
+    }),
+  },
+  'cavus-komutan': {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '+10%',
+      pitch: '-3Hz',
+      volume: '+100%',
+      yell: 'bark',
+      googleName: 'tr-TR-Standard-D',
+      googleRate: 1.1,
+      googlePitch: -1,
+    },
+    en: enVoice('en-US-DavisNeural', 'en-US-Standard-D', {
+      rate: '+10%',
+      pitch: '-3Hz',
+      volume: '+100%',
+      yell: 'bark',
+      googleRate: 1.1,
+      googlePitch: -1,
+    }),
+  },
+  'taksi-soforu': {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '+6%',
+      pitch: '+0Hz',
+      volume: '+100%',
+      yell: 'yell',
+      googleName: 'tr-TR-Standard-B',
+      googleRate: 1.06,
+      googlePitch: 0,
+    },
+    en: enVoice('en-US-GuyNeural', 'en-US-Standard-B', {
+      rate: '+6%',
+      pitch: '+0Hz',
+      volume: '+100%',
+      yell: 'yell',
+      googleRate: 1.06,
+      googlePitch: 0,
+    }),
+  },
+  'zehirli-ex': {
+    tr: {
+      edgeVoice: 'tr-TR-EmelNeural',
+      rate: '+2%',
+      pitch: '+0Hz',
+      volume: '+75%',
+      yell: 'scold',
+      googleName: 'tr-TR-Standard-A',
+      googleRate: 1.03,
+      googlePitch: 0,
+    },
+    en: enVoice('en-US-JennyNeural', 'en-US-Standard-F', {
+      rate: '+2%',
+      pitch: '+0Hz',
+      volume: '+75%',
+      yell: 'scold',
+      googleRate: 1.03,
+      googlePitch: 0,
+    }),
+  },
+  'acil-doktor': {
+    tr: {
+      edgeVoice: 'tr-TR-EmelNeural',
+      rate: '+0%',
+      pitch: '+0Hz',
+      volume: '+45%',
+      yell: 'cold',
+      googleName: 'tr-TR-Standard-C',
+      googleRate: 1.0,
+      googlePitch: 0,
+    },
+    en: enVoice('en-US-JennyNeural', 'en-US-Standard-C', {
+      rate: '+0%',
+      pitch: '+0Hz',
+      volume: '+45%',
+      yell: 'cold',
+      googleRate: 1.0,
+      googlePitch: 0,
+    }),
+  },
+  'gece-bekcisi': {
+    tr: {
+      edgeVoice: 'tr-TR-AhmetNeural',
+      rate: '-3%',
+      pitch: '-4Hz',
+      volume: '+65%',
+      yell: 'growl',
+      googleName: 'tr-TR-Standard-D',
+      googleRate: 0.96,
+      googlePitch: -2,
+    },
+    en: enVoice('en-US-DavisNeural', 'en-US-Standard-D', {
+      rate: '-3%',
+      pitch: '-4Hz',
+      volume: '+65%',
+      yell: 'growl',
+      googleRate: 0.96,
+      googlePitch: -2,
+    }),
+  },
+};
+
+const DEFAULT_VOICE: LocaleVoices = {
+  tr: {
     edgeVoice: 'tr-TR-AhmetNeural',
     rate: '+4%',
     pitch: '+0Hz',
@@ -33,107 +246,16 @@ const VOICE_BY_SLUG: Record<string, VoiceProfile> = {
     googleRate: 1.05,
     googlePitch: 0,
   },
-  'agresif-fitness-kocu': {
-    edgeVoice: 'tr-TR-AhmetNeural',
-    rate: '+8%',
-    pitch: '-2Hz',
-    volume: '+100%',
-    yell: 'bark',
-    googleName: 'tr-TR-Standard-D',
-    googleRate: 1.08,
-    googlePitch: -1,
-  },
-  'sinirli-balkan-annesi': {
-    edgeVoice: 'tr-TR-EmelNeural',
-    rate: '+3%',
-    pitch: '+1Hz',
-    volume: '+90%',
-    yell: 'scold',
-    googleName: 'tr-TR-Standard-A',
-    googleRate: 1.04,
-    googlePitch: 1,
-  },
-  'toksik-kurumsal-yonetici': {
-    edgeVoice: 'tr-TR-AhmetNeural',
-    rate: '-2%',
-    pitch: '+0Hz',
-    volume: '+40%',
-    yell: 'cold',
-    googleName: 'tr-TR-Standard-C',
-    googleRate: 0.98,
-    googlePitch: 0,
-  },
-  dracula: {
-    edgeVoice: 'tr-TR-AhmetNeural',
-    rate: '-5%',
-    pitch: '-6Hz',
-    volume: '+70%',
-    yell: 'growl',
-    googleName: 'tr-TR-Standard-B',
-    googleRate: 0.94,
-    googlePitch: -3,
-  },
-  'cavus-komutan': {
-    edgeVoice: 'tr-TR-AhmetNeural',
-    rate: '+10%',
-    pitch: '-3Hz',
-    volume: '+100%',
-    yell: 'bark',
-    googleName: 'tr-TR-Standard-D',
-    googleRate: 1.1,
-    googlePitch: -1,
-  },
-  'taksi-soforu': {
-    edgeVoice: 'tr-TR-AhmetNeural',
-    rate: '+6%',
+  en: {
+    edgeVoice: 'en-US-GuyNeural',
+    rate: '+4%',
     pitch: '+0Hz',
     volume: '+100%',
     yell: 'yell',
-    googleName: 'tr-TR-Standard-B',
-    googleRate: 1.06,
+    googleName: 'en-US-Standard-B',
+    googleRate: 1.05,
     googlePitch: 0,
   },
-  'zehirli-ex': {
-    edgeVoice: 'tr-TR-EmelNeural',
-    rate: '+2%',
-    pitch: '+0Hz',
-    volume: '+75%',
-    yell: 'scold',
-    googleName: 'tr-TR-Standard-A',
-    googleRate: 1.03,
-    googlePitch: 0,
-  },
-  'acil-doktor': {
-    edgeVoice: 'tr-TR-EmelNeural',
-    rate: '+0%',
-    pitch: '+0Hz',
-    volume: '+45%',
-    yell: 'cold',
-    googleName: 'tr-TR-Standard-C',
-    googleRate: 1.0,
-    googlePitch: 0,
-  },
-  'gece-bekcisi': {
-    edgeVoice: 'tr-TR-AhmetNeural',
-    rate: '-3%',
-    pitch: '-4Hz',
-    volume: '+65%',
-    yell: 'growl',
-    googleName: 'tr-TR-Standard-D',
-    googleRate: 0.96,
-    googlePitch: -2,
-  },
-};
-
-const DEFAULT_VOICE: VoiceProfile = {
-  edgeVoice: 'tr-TR-AhmetNeural',
-  rate: '+4%',
-  pitch: '+0Hz',
-  volume: '+100%',
-  yell: 'yell',
-  googleName: 'tr-TR-Standard-B',
-  googleRate: 1.05,
-  googlePitch: 0,
 };
 
 /**
@@ -181,6 +303,7 @@ export class TtsService {
   async synthesizeTurkish(
     text: string,
     characterSlug?: string | null,
+    locale: 'tr' | 'en' = 'tr',
   ): Promise<Buffer> {
     const cleaned = text.replace(/\s+/g, ' ').trim();
     if (!cleaned) throw new BadRequestException('Metin boş');
@@ -188,9 +311,12 @@ export class TtsService {
       throw new BadRequestException(`Metin en fazla ${MAX_CHARS} karakter`);
     }
 
-    const voice =
+    const pair =
       (characterSlug && VOICE_BY_SLUG[characterSlug]) || DEFAULT_VOICE;
+    const voice = pair[locale] ?? pair.tr;
     const spoken = prepareSpeechText(cleaned, voice.yell);
+    const langCode = locale === 'en' ? 'en-US' : 'tr-TR';
+    const tl = locale === 'en' ? 'en' : 'tr';
 
     const apiKey =
       this.config.get<string>('GOOGLE_TTS_API_KEY') ||
@@ -198,7 +324,7 @@ export class TtsService {
 
     if (apiKey) {
       try {
-        return await this.googleCloudTts(spoken, apiKey, voice);
+        return await this.googleCloudTts(spoken, apiKey, voice, langCode);
       } catch (e) {
         this.logger.warn(
           `Google TTS başarısız, Edge’e düşülüyor: ${e instanceof Error ? e.message : e}`,
@@ -212,7 +338,7 @@ export class TtsService {
       this.logger.warn(
         `Edge TTS başarısız, Translate proxy: ${e instanceof Error ? e.message : e}`,
       );
-      return this.translateTtsProxy(spoken);
+      return this.translateTtsProxy(spoken, tl);
     }
   }
 
@@ -239,6 +365,7 @@ export class TtsService {
     text: string,
     apiKey: string,
     voice: VoiceProfile,
+    languageCode: string,
   ): Promise<Buffer> {
     const loud = voice.yell === 'yell' || voice.yell === 'bark';
     const ssml = `<speak><prosody rate="${Math.round(voice.googleRate * 100)}%" pitch="${voice.googlePitch >= 0 ? '+' : ''}${voice.googlePitch}st" volume="${loud ? '+8dB' : '+4dB'}">${escapeXml(text)}</prosody></speak>`;
@@ -251,7 +378,7 @@ export class TtsService {
         body: JSON.stringify({
           input: { ssml },
           voice: {
-            languageCode: 'tr-TR',
+            languageCode,
             name: voice.googleName,
           },
           audioConfig: {
@@ -274,7 +401,10 @@ export class TtsService {
     return Buffer.from(json.audioContent, 'base64');
   }
 
-  private async translateTtsProxy(text: string): Promise<Buffer> {
+  private async translateTtsProxy(
+    text: string,
+    tl: string,
+  ): Promise<Buffer> {
     const parts = splitChunks(text, CHUNK);
     const buffers: Buffer[] = [];
 
@@ -284,7 +414,7 @@ export class TtsService {
         new URLSearchParams({
           ie: 'UTF-8',
           client: 'tw-ob',
-          tl: 'tr',
+          tl,
           q: part,
         }).toString();
 

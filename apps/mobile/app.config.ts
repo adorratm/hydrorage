@@ -15,6 +15,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'hydrorage',
   userInterfaceStyle: 'dark',
   newArchEnabled: true,
+  description:
+    'Hidrasyon takibi ve sesli hatırlatma. +18 veya güvenli mod. Su içmezsen küfür yersin — istersen küfürsüz.',
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
@@ -24,8 +26,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     bundleIdentifier: 'com.hydrorage.app',
     usesAppleSignIn: true,
+    associatedDomains: ['applinks:hydrorage.com.tr', 'applinks:www.hydrorage.com.tr'],
     infoPlist: {
-      UIBackgroundModes: ['remote-notification'],
+      UIBackgroundModes: ['remote-notification', 'audio'],
+      NSUserTrackingUsageDescription:
+        'Hatırlatmalar ve hidrasyon takibi için kullanılır.',
+    },
+    privacyManifests: {
+      NSPrivacyAccessedAPITypes: [],
     },
   },
   android: {
@@ -38,6 +46,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'VIBRATE',
       'RECEIVE_BOOT_COMPLETED',
       'SCHEDULE_EXACT_ALARM',
+    ],
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [
+          {
+            scheme: 'https',
+            host: 'hydrorage.com.tr',
+            pathPrefix: '/app',
+          },
+        ],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
     ],
   },
   web: {
@@ -70,5 +92,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleClientIdAndroid:
       process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID ?? '',
     googleClientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB ?? '',
+    privacyPolicyUrl: 'https://hydrorage.com.tr/gizlilik',
+    termsUrl: 'https://hydrorage.com.tr/kosullar',
+    eas: {
+      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? '',
+    },
   },
 });
