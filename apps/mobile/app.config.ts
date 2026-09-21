@@ -13,6 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'hydrorage',
+  owner: "adorratm",
   userInterfaceStyle: 'dark',
   newArchEnabled: true,
   description:
@@ -95,7 +96,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     privacyPolicyUrl: 'https://hydrorage.com.tr/gizlilik',
     termsUrl: 'https://hydrorage.com.tr/kosullar',
     eas: {
-      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? '',
+      // Expo: @adorratm/hydrorage — override with EXPO_PUBLIC_EAS_PROJECT_ID if needed
+      projectId:
+        process.env.EXPO_PUBLIC_EAS_PROJECT_ID ||
+        '2b597587-307d-478c-9947-4de65b8aa943',
     },
   },
 });
