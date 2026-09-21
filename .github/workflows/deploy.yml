@@ -1,7 +1,5 @@
 name: Deploy
 
-# Push to main → SSH → git pull → build on VPS → zero-downtime switch.
-
 on:
   push:
     branches: [main]
@@ -31,36 +29,30 @@ jobs:
             cd /opt/hydrorage
 
             echo "==> syncing git"
-            if [ ! -d .git ]; then
-              echo "ERROR: /opt/hydrorage is not a git checkout" >&2
-              exit 1
-            fi
+            test -d .git || { echo "ERROR: not a git checkout"; exit 1; }
             git fetch --depth=1 origin main
             git reset --hard origin/main
 
-            echo "==> normalizing scripts (CRLF→LF) + executable"
-            sed -i 's/\r$//' deploy/*.sh || true
-            chmod +x deploy/*.sh
+            echo "==> normalizing deploy/*.sh"
+            for f in deploy/*.sh; do
+              [ -f "$f" ] || continue
+              sed -i 's/\r$//' "$f" || true
+              chmod +x "$f" || true
+              echo "    $f"
+            done
 
-            if [ ! -f .env ]; then
-              echo "ERROR: missing /opt/hydrorage/.env — copy from .env.prod.example" >&2
-              exit 1
-            fi
+            echo "==> checking .env"
+            test -f .env || { echo "ERROR: missing .env"; exit 1; }
 
             if [ ! -f ACTIVE_COLOR ]; then
-              echo "==> first boot → bootstrap.sh"
+              echo "==> bootstrap"
               bash deploy/bootstrap.sh local
             else
-              echo "==> deploy → zero-downtime.sh (active=$(cat ACTIVE_COLOR))"
+              echo "==> zero-downtime (active=$(cat ACTIVE_COLOR | tr -d '\r'))"
               bash deploy/zero-downtime.sh local
             fi
 
-            echo "==> host nginx vhost (hydrorage only)"
-            if sudo -n true 2>/dev/null; then
-              bash deploy/install-host-nginx.sh
-            else
-              echo "WARN: passwordless sudo yok. Sunucuda bir kez çalıştır:"
-              echo "      sudo bash /opt/hydrorage/deploy/install-host-nginx.sh"
-            fi
+            echo "==> wire into ttengamesstudio-nginx edge"
+            bash deploy/install-into-edge-nginx.sh || echo "WARN: edge wire failed — run manually"
 
             echo "==> done"

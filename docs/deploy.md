@@ -25,14 +25,14 @@ Node **26.9.0** · Yarn **4.18.0**.
 
 On this server **:80/:443** are owned by Docker container `ttengamesstudio-nginx` (not systemd nginx).
 
-HydroRage listens on `127.0.0.1:9080`. Wire it once:
+HydroRage listens on `127.0.0.1:9080` (host curls). Wire into TTEN once:
 
 ```bash
 cd /opt/hydrorage && git pull
 bash deploy/install-into-edge-nginx.sh
 ```
 
-This only adds `server_name hydrorage.*` → `172.17.0.1:9080`. TTEN / portfolio / kiliccoffee blocks stay untouched.
+Connects `hydrorage-nginx-1` to the TTEN Docker network and proxies `hydrorage.*` → `hydrorage-nginx-1:80` (not `172.17.0.1:9080` — that 502s with loopback bind). TTEN / portfolio / kiliccoffee stay untouched.
 
 Do **not** `systemctl start nginx` — it fights Docker for ports 80/443.
 
