@@ -39,51 +39,10 @@ function oauthExtra() {
   return extra;
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function useSessionState() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [appleAvailable, setAppleAvailable] = useState(false);
-  const extra = oauthExtra();
-
-  const webClientId = extra.googleClientIdWeb?.trim() || undefined;
-  const iosClientId = extra.googleClientIdIos?.trim() || undefined;
-  const androidClientId = extra.googleClientIdAndroid?.trim() || undefined;
-
-  // Web: Google Console'da Authorized redirect URI olarak origin eklenmeli
-  // (örn. http://localhost:8081). Native: app scheme.
-  const redirectUri =
-    Platform.OS === 'web'
-      ? typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8081'
-      : makeRedirectUri({
-          scheme: 'hydrorage',
-          path: 'oauthredirect',
-          preferLocalhost: true,
-        });
-
-  const [googleRequest, , googlePromptAsync] = Google.useIdTokenAuthRequest({
-    iosClientId,
-    androidClientId,
-    webClientId,
-    clientId: Platform.OS === 'web' ? webClientId : undefined,
-    selectAccount: true,
-    redirectUri,
-  });
-
-  useEffect(() => {
-    if (__DEV__) {
-      console.log('[Google OAuth]', {
-        platform: Platform.OS,
-        redirectUri,
-        webClientId: webClientId
-          ? `${webClientId.slice(0, 28)}…`
-          : '(MISSING)',
-        hasIos: !!iosClientId,
-        hasAndroid: !!androidClientId,
-      });
-    }
-  }, [redirectUri, webClientId, iosClientId, androidClientId]);
 
   useEffect(() => {
     getStoredUser()
@@ -111,34 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [],
   );
-
-  const signInWithGoogle = useCallback(async () => {
-    if (Platform.OS === 'web' && !webClientId) {
-      throw new Error(
-        'EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB eksik — apps/mobile/.env',
-      );
-    }
-    const result = await googlePromptAsync();
-    if (result.type !== 'success') {
-      throw new Error('Google girişi iptal edildi');
-    }
-    const idToken =
-      result.params.id_token ||
-      (result as { authentication?: { idToken?: string } }).authentication
-        ?.idToken;
-    if (!idToken) {
-      throw new Error('Google idToken alınamadı');
-    }
-    const data = await api<{
-      accessToken: string;
-      refreshToken: string;
-      user: User;
-    }>('/auth/google', {
-      method: 'POST',
-      body: JSON.stringify({ idToken }),
-    });
-    await applySession(data);
-  }, [googlePromptAsync, applySession, webClientId]);
 
   const signInWithApple = useCallback(async () => {
     if (Platform.OS !== 'ios') {
@@ -180,29 +111,163 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  return {
+    user,
+    loading,
+    appleAvailable,
+    applySession,
+    signInWithApple,
+    logout,
+  };
+}
+
+function AuthProviderWithGoogle({ children }: { children: React.ReactNode }) {
+  const session = useSessionState();
+  const extra = oauthExtra();
+
+  const webClientId = extra.googleClientIdWeb?.trim() || undefined;
+  const iosClientId = extra.googleClientIdIos?.trim() || undefined;
+  const androidClientId = extra.googleClientIdAndroid?.trim() || undefined;
+
+  const redirectUri =
+    Platform.OS === 'web'
+      ? typeof window !== 'undefined'
+        ? window.location.origin
+        : 'http://localhost:8081'
+      : makeRedirectUri({
+          scheme: 'hydrorage',
+          path: 'oauthredirect',
+          preferLocalhost: true,
+        });
+
+  const [googleRequest, , googlePromptAsync] = Google.useIdTokenAuthRequest({
+    iosClientId,
+    androidClientId,
+    webClientId,
+    clientId: Platform.OS === 'web' ? webClientId : undefined,
+    selectAccount: true,
+    redirectUri,
+  });
+
+  useEffect(() => {
+    if (__DEV__) {
+      console.log('[Google OAuth]', {
+        platform: Platform.OS,
+        redirectUri,
+        webClientId: webClientId
+          ? `${webClientId.slice(0, 28)}…`
+          : '(MISSING)',
+        hasIos: !!iosClientId,
+        hasAndroid: !!androidClientId,
+      });
+    }
+  }, [redirectUri, webClientId, iosClientId, androidClientId]);
+
+  const signInWithGoogle = useCallback(async () => {
+    if (Platform.OS === 'web' && !webClientId) {
+      throw new Error(
+        'EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB eksik — apps/mobile/.env',
+      );
+    }
+    const result = await googlePromptAsync();
+    if (result.type !== 'success') {
+      throw new Error('Google girişi iptal edildi');
+    }
+    const idToken =
+      result.params.id_token ||
+      (result as { authentication?: { idToken?: string } }).authentication
+        ?.idToken;
+    if (!idToken) {
+      throw new Error('Google idToken alınamadı');
+    }
+    const data = await api<{
+      accessToken: string;
+      refreshToken: string;
+      user: User;
+    }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+    });
+    await session.applySession(data);
+  }, [googlePromptAsync, session.applySession, webClientId]);
+
   const value = useMemo(
     () => ({
-      user,
-      loading,
-      googleReady: !!googleRequest && (Platform.OS !== 'web' || !!webClientId),
-      appleAvailable,
+      user: session.user,
+      loading: session.loading,
+      googleReady:
+        !!googleRequest && (Platform.OS !== 'web' || !!webClientId),
+      appleAvailable: session.appleAvailable,
       signInWithGoogle,
-      signInWithApple,
-      logout,
+      signInWithApple: session.signInWithApple,
+      logout: session.logout,
     }),
     [
-      user,
-      loading,
+      session.user,
+      session.loading,
       googleRequest,
       webClientId,
-      appleAvailable,
+      session.appleAvailable,
       signInWithGoogle,
-      signInWithApple,
-      logout,
+      session.signInWithApple,
+      session.logout,
     ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function AuthProviderWithoutGoogle({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = useSessionState();
+
+  const signInWithGoogle = useCallback(async () => {
+    throw new Error(
+      'Google Client ID eksik — EAS env / apps/mobile/.env kontrol et',
+    );
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user: session.user,
+      loading: session.loading,
+      googleReady: false,
+      appleAvailable: session.appleAvailable,
+      signInWithGoogle,
+      signInWithApple: session.signInWithApple,
+      logout: session.logout,
+    }),
+    [
+      session.user,
+      session.loading,
+      session.appleAvailable,
+      signInWithGoogle,
+      session.signInWithApple,
+      session.logout,
+    ],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function platformGoogleClientIdConfigured() {
+  const extra = oauthExtra();
+  if (Platform.OS === 'ios') return !!extra.googleClientIdIos?.trim();
+  if (Platform.OS === 'android') return !!extra.googleClientIdAndroid?.trim();
+  return !!extra.googleClientIdWeb?.trim();
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // useIdTokenAuthRequest throws synchronously if platform clientId is missing.
+  if (!platformGoogleClientIdConfigured()) {
+    return (
+      <AuthProviderWithoutGoogle>{children}</AuthProviderWithoutGoogle>
+    );
+  }
+  return <AuthProviderWithGoogle>{children}</AuthProviderWithGoogle>;
 }
 
 export function useAuth() {

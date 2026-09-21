@@ -7,7 +7,11 @@
     "base": {
       "node": "22.14.0",
       "env": {
-        "EXPO_NO_DOTENV": "1"
+        "EXPO_PUBLIC_API_URL": "https://api.hydrorage.com.tr/api",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "736234086279-r79kmn2n19n58rso0lv8ln6ej02d3bhc.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID": "736234086279-bl3n71l3k8361u4l9ecoe091435re4o6.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "736234086279-a30k23kiitc74dc9u9o4mcochuh9s394.apps.googleusercontent.com",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "2b597587-307d-478c-9947-4de65b8aa943"
       }
     },
     "development": {
@@ -21,9 +25,6 @@
     "preview": {
       "extends": "base",
       "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.hydrorage.com.tr/api"
-      },
       "ios": {
         "resourceClass": "m-medium"
       }
@@ -31,9 +32,6 @@
     "production": {
       "extends": "base",
       "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.hydrorage.com.tr/api"
-      },
       "ios": {
         "resourceClass": "m-medium"
       }

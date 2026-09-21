@@ -36,10 +36,18 @@ export async function clearSession() {
 }
 
 export async function getStoredUser() {
-  const raw = await storageGet(USER_KEY);
-  return raw
-    ? (JSON.parse(raw) as { id: string; email: string; displayName: string })
-    : null;
+  try {
+    const raw = await storageGet(USER_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as {
+      id: string;
+      email: string;
+      displayName: string;
+    };
+  } catch {
+    await clearSession();
+    return null;
+  }
 }
 
 async function getAccess() {
