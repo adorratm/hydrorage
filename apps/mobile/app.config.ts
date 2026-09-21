@@ -1,5 +1,9 @@
 import type { ExpoConfig, ConfigContext } from 'expo/config';
 
+const EAS_PROJECT_ID =
+  process.env.EXPO_PUBLIC_EAS_PROJECT_ID ||
+  '2b597587-307d-478c-9947-4de65b8aa943';
+
 /**
  * OAuth client ID'leri repo'da tutulmaz — apps/mobile/.env (gitignore).
  * Client ID'ler derlenmiş uygulamada yine görünür; asıl gizli olan CLIENT_SECRET
@@ -27,7 +31,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     bundleIdentifier: 'com.hydrorage.app',
     usesAppleSignIn: true,
-    associatedDomains: ['applinks:hydrorage.com.tr', 'applinks:www.hydrorage.com.tr'],
+    associatedDomains: [
+      'applinks:hydrorage.com.tr',
+      'applinks:www.hydrorage.com.tr',
+    ],
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ['remote-notification', 'audio'],
@@ -42,6 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     adaptiveIcon: {
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundColor: '#11131e',
+      monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     package: 'com.hydrorage.app',
     permissions: [
@@ -69,12 +77,30 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     output: 'static',
     favicon: './assets/images/favicon.png',
   },
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+    checkAutomatically: 'ON_LOAD',
+    fallbackToCacheTimeout: 0,
+  },
   plugins: [
     'expo-router',
     'expo-secure-store',
     'expo-apple-authentication',
     'expo-web-browser',
     'expo-audio',
+    'expo-updates',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        backgroundColor: '#11131e',
+        imageWidth: 220,
+        resizeMode: 'contain',
+      },
+    ],
     [
       'expo-notifications',
       {
@@ -97,10 +123,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     privacyPolicyUrl: 'https://hydrorage.com.tr/gizlilik',
     termsUrl: 'https://hydrorage.com.tr/kosullar',
     eas: {
-      // Expo: @adorratm/hydrorage — override with EXPO_PUBLIC_EAS_PROJECT_ID if needed
-      projectId:
-        process.env.EXPO_PUBLIC_EAS_PROJECT_ID ||
-        '2b597587-307d-478c-9947-4de65b8aa943',
+      projectId: EAS_PROJECT_ID,
     },
   },
 });

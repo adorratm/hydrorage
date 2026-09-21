@@ -24,6 +24,7 @@ import { api } from '@/lib/api';
 import { loadLocale } from '@/lib/i18n';
 import { AppQueryProvider } from '@/lib/query-provider';
 import { DialogHost } from '@/components/DialogHost';
+import { applyUpdateIfAvailable } from '@/lib/updates';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -141,7 +142,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (!fontsLoaded && !fontError) return;
     patchTextToUbuntu();
-    SplashScreen.hideAsync().catch(() => undefined);
+    void (async () => {
+      // OTA first — reloadAsync never returns if an update applies
+      await applyUpdateIfAvailable();
+      await SplashScreen.hideAsync().catch(() => undefined);
+    })();
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
