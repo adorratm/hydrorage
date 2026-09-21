@@ -12,8 +12,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'hydrorage',
-  owner: "adorratm",
+  scheme: ['hydrorage', 'com.hydrorage.app'],
+  owner: 'adorratm',
   userInterfaceStyle: 'dark',
   newArchEnabled: true,
   description:

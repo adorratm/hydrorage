@@ -10,7 +10,6 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { makeRedirectUri } from 'expo-auth-session';
 import Constants from 'expo-constants';
 import { api, clearSession, getStoredUser, saveSession } from '@/lib/api';
 
@@ -129,39 +128,40 @@ function AuthProviderWithGoogle({ children }: { children: React.ReactNode }) {
   const iosClientId = extra.googleClientIdIos?.trim() || undefined;
   const androidClientId = extra.googleClientIdAndroid?.trim() || undefined;
 
-  const redirectUri =
-    Platform.OS === 'web'
-      ? typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8081'
-      : makeRedirectUri({
-          scheme: 'hydrorage',
-          path: 'oauthredirect',
-          preferLocalhost: true,
-        });
-
-  const [googleRequest, , googlePromptAsync] = Google.useIdTokenAuthRequest({
-    iosClientId,
-    androidClientId,
-    webClientId,
-    clientId: Platform.OS === 'web' ? webClientId : undefined,
-    selectAccount: true,
-    redirectUri,
-  });
+  // Native: do NOT override redirectUri — Google provider uses
+  // `${bundleId}:/oauthredirect` (e.g. com.hydrorage.app:/oauthredirect).
+  // Custom hydrorage://… → Google Error 400 invalid_request.
+  const [googleRequest, , googlePromptAsync] = Google.useIdTokenAuthRequest(
+    {
+      iosClientId,
+      androidClientId,
+      webClientId,
+      clientId: Platform.OS === 'web' ? webClientId : undefined,
+      selectAccount: true,
+      ...(Platform.OS === 'web'
+        ? {
+            redirectUri:
+              typeof window !== 'undefined'
+                ? window.location.origin
+                : 'http://localhost:8081',
+          }
+        : {}),
+    },
+  );
 
   useEffect(() => {
     if (__DEV__) {
       console.log('[Google OAuth]', {
         platform: Platform.OS,
-        redirectUri,
         webClientId: webClientId
           ? `${webClientId.slice(0, 28)}…`
           : '(MISSING)',
         hasIos: !!iosClientId,
         hasAndroid: !!androidClientId,
+        requestRedirectUri: googleRequest?.redirectUri,
       });
     }
-  }, [redirectUri, webClientId, iosClientId, androidClientId]);
+  }, [webClientId, iosClientId, androidClientId, googleRequest?.redirectUri]);
 
   const signInWithGoogle = useCallback(async () => {
     if (Platform.OS === 'web' && !webClientId) {
