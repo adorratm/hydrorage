@@ -2,6 +2,33 @@ import fs from 'fs';
 import path from 'path';
 import pg from 'pg';
 
+/** Avoid leading-underscore names — PG array types use `_tablename` and collide (23505 on pg_type). */
+const MIGRATIONS_TABLE = 'hydrorage_migrations';
+
+async function ensureMigrationsTable(client: pg.Client) {
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "${MIGRATIONS_TABLE}" (
+        id TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+  } catch (e: unknown) {
+    const err = e as { code?: string };
+    // Concurrent create / leftover type from old "_sql_migrations" name
+    if (err.code === '23505') {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS "${MIGRATIONS_TABLE}" (
+          id TEXT PRIMARY KEY,
+          applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      return;
+    }
+    throw e;
+  }
+}
+
 async function main() {
   const url =
     process.env.DIRECT_URL ||
@@ -11,12 +38,12 @@ async function main() {
   const client = new pg.Client({ connectionString: url });
   await client.connect();
 
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS "_sql_migrations" (
-      id TEXT PRIMARY KEY,
-      applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
+  // Clean up legacy name that breaks on PG 16+/18 (type/table underscore clash)
+  await client.query(`DROP TABLE IF EXISTS "_sql_migrations" CASCADE`);
+  await client.query(`DROP TYPE IF EXISTS "_sql_migrations" CASCADE`);
+  await client.query(`DROP TYPE IF EXISTS "__sql_migrations" CASCADE`);
+
+  await ensureMigrationsTable(client);
 
   const dir = path.join(__dirname, '../../migrations');
   const folders = fs
@@ -27,7 +54,7 @@ async function main() {
   for (const folder of folders) {
     const id = folder;
     const exists = await client.query(
-      'SELECT 1 FROM "_sql_migrations" WHERE id = $1',
+      `SELECT 1 FROM "${MIGRATIONS_TABLE}" WHERE id = $1`,
       [id],
     );
     if (exists.rowCount) continue;
@@ -38,7 +65,10 @@ async function main() {
     await client.query('BEGIN');
     try {
       await client.query(sql);
-      await client.query('INSERT INTO "_sql_migrations"(id) VALUES ($1)', [id]);
+      await client.query(
+        `INSERT INTO "${MIGRATIONS_TABLE}"(id) VALUES ($1)`,
+        [id],
+      );
       await client.query('COMMIT');
     } catch (e) {
       await client.query('ROLLBACK');

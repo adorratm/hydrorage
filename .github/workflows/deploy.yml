@@ -38,9 +38,13 @@ jobs:
               exit 1
             fi
             chmod +x deploy/*.sh
-            # First boot if never deployed
             if [ ! -f ACTIVE_COLOR ]; then
               ./deploy/bootstrap.sh local
             else
               ./deploy/zero-downtime.sh local
+            fi
+            # Ensure host routes hydrorage.* (does not touch other sites)
+            if [ -x deploy/install-host-nginx.sh ]; then
+              sudo -n ./deploy/install-host-nginx.sh \
+                || echo "WARN: run once on server: sudo ./deploy/install-host-nginx.sh"
             fi
