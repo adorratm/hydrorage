@@ -21,13 +21,20 @@ Eski alışkanlığına yakın akış:
 
 Node **26.9.0** · Yarn **4.18.0**.
 
-## Shared VPS
+## Shared VPS edge = `ttengamesstudio-nginx`
 
-| Rule | Detail |
-|---|---|
-| `:80` / `:443` host’ta kalır | Docker nginx sadece `127.0.0.1:9080` |
-| Diğer siteler dokunulmaz | ttengamesstudio / emrekilic / kiliccoffeeroaster vhost’ları değişmez |
-| Sadece hydrorage hostnames | `deploy/install-host-nginx.sh` bir kez |
+On this server **:80/:443** are owned by Docker container `ttengamesstudio-nginx` (not systemd nginx).
+
+HydroRage listens on `127.0.0.1:9080`. Wire it once:
+
+```bash
+cd /opt/hydrorage && git pull
+bash deploy/install-into-edge-nginx.sh
+```
+
+This only adds `server_name hydrorage.*` → `172.17.0.1:9080`. TTEN / portfolio / kiliccoffee blocks stay untouched.
+
+Do **not** `systemctl start nginx` — it fights Docker for ports 80/443.
 
 ## GitHub Secrets (`production` environment)
 
