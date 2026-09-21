@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM node:26.9.0-alpine AS deps
 WORKDIR /app
-RUN corepack enable && corepack prepare yarn@4.18.0 --activate
+RUN npm install -g corepack \
+  && corepack enable \
+  && corepack prepare yarn@4.18.0 --activate
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
@@ -9,7 +11,9 @@ RUN yarn workspaces focus @hydrorage/web
 
 FROM node:26.9.0-alpine AS build
 WORKDIR /app
-RUN corepack enable && corepack prepare yarn@4.18.0 --activate
+RUN npm install -g corepack \
+  && corepack enable \
+  && corepack prepare yarn@4.18.0 --activate
 COPY --from=deps /app /app
 COPY apps/web ./apps/web
 COPY packages/shared ./packages/shared
