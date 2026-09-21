@@ -25,6 +25,9 @@ mkdir -p docker/nginx/conf.d
 sed 's/api_COLOR/api_blue/' docker/nginx/templates/upstream.conf.template \
   > docker/nginx/conf.d/upstream.conf
 
+echo "==> sync pgbouncer credentials from .env"
+bash deploy/sync-pgbouncer.sh
+
 echo "==> Starting postgres / pgbouncer / redis"
 "${COMPOSE[@]}" up -d postgres pgbouncer redis
 
@@ -48,4 +51,5 @@ IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue up -d api_blue web admin n
 echo blue >"$COLOR_FILE"
 echo "==> Bootstrap done. ACTIVE_COLOR=blue"
 echo "    Docker edge: 127.0.0.1:9080 (loopback — other sites keep :80/:443)"
-echo "    Next (once): sudo ./deploy/install-host-nginx.sh"
+echo "    Next (once): bash deploy/install-into-edge-nginx.sh"
+echo "    Do NOT systemctl start nginx — :80/:443 belong to ttengamesstudio-nginx"

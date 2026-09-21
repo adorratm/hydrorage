@@ -23,36 +23,14 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: 22
           command_timeout: 40m
-          script_stop: true
+          # Do NOT use script_stop — it breaks if/test false branches (exit 1).
           script: |
             set -euo pipefail
             cd /opt/hydrorage
-
             echo "==> syncing git"
             test -d .git || { echo "ERROR: not a git checkout"; exit 1; }
             git fetch --depth=1 origin main
             git reset --hard origin/main
-
-            echo "==> normalizing deploy/*.sh"
-            for f in deploy/*.sh; do
-              [ -f "$f" ] || continue
-              sed -i 's/\r$//' "$f" || true
-              chmod +x "$f" || true
-              echo "    $f"
-            done
-
-            echo "==> checking .env"
-            test -f .env || { echo "ERROR: missing .env"; exit 1; }
-
-            if [ ! -f ACTIVE_COLOR ]; then
-              echo "==> bootstrap"
-              bash deploy/bootstrap.sh local
-            else
-              echo "==> zero-downtime (active=$(cat ACTIVE_COLOR | tr -d '\r'))"
-              bash deploy/zero-downtime.sh local
-            fi
-
-            echo "==> wire into ttengamesstudio-nginx edge"
-            bash deploy/install-into-edge-nginx.sh || echo "WARN: edge wire failed — run manually"
-
-            echo "==> done"
+            sed -i 's/\r$//' deploy/gha-remote.sh || true
+            chmod +x deploy/gha-remote.sh || true
+            bash deploy/gha-remote.sh

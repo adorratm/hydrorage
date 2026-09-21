@@ -36,6 +36,10 @@ fi
 
 echo "==> Active=$ACTIVE  New=$NEW  Tag=$IMAGE_TAG (local build)"
 
+echo "==> sync pgbouncer credentials from .env"
+bash deploy/sync-pgbouncer.sh
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" up -d pgbouncer
+
 echo "==> Building images on server (api / web / admin)"
 IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile "$NEW" build "api_${NEW}" web admin
 
