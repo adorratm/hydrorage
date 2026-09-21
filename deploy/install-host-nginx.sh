@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Install HydroRage host nginx vhost WITHOUT touching other sites.
-# Fixes: hydrorage.com.tr showing ttengamesstudio (default_server catch-all).
 set -euo pipefail
 
 ROOT_DIR="${ROOT_DIR:-/opt/hydrorage}"
@@ -19,6 +18,25 @@ if ! command -v nginx >/dev/null 2>&1; then
   exit 1
 fi
 
+reload_nginx() {
+  echo "==> reloading nginx"
+  if command -v systemctl >/dev/null 2>&1; then
+    if systemctl is-active --quiet nginx 2>/dev/null; then
+      sudo systemctl reload nginx && return 0
+    fi
+    if systemctl list-unit-files 2>/dev/null | grep -q '^nginx.service'; then
+      sudo systemctl restart nginx && return 0
+    fi
+  fi
+  # Fallback when pid file is empty/stale (shared VPS quirk)
+  if sudo nginx -s reload 2>/dev/null; then
+    return 0
+  fi
+  echo "WARN: reload failed — trying restart"
+  sudo nginx -s stop 2>/dev/null || true
+  sudo nginx || sudo systemctl start nginx
+}
+
 # WebSocket upgrade map (idempotent)
 if [[ -d /etc/nginx/conf.d ]] && ! grep -Rqs 'map \$http_upgrade \$connection_upgrade' /etc/nginx/conf.d /etc/nginx/nginx.conf 2>/dev/null; then
   sudo tee /etc/nginx/conf.d/00-hydrorage-upgrade-map.conf >/dev/null <<'EOF'
@@ -30,7 +48,6 @@ EOF
   echo "==> Wrote upgrade map"
 fi
 
-# Self-signed cert for Cloudflare Full (browser still sees CF cert)
 if [[ ! -f "$SSL_DIR/fullchain.pem" || ! -f "$SSL_DIR/privkey.pem" ]]; then
   echo "==> Generating self-signed TLS cert for origin (Cloudflare Full)"
   sudo mkdir -p "$SSL_DIR"
@@ -48,28 +65,22 @@ sudo cp "$SRC" "$AVAILABLE"
 if [[ -d "$(dirname "$ENABLED")" ]]; then
   sudo ln -sfn "$AVAILABLE" "$ENABLED"
   echo "==> Enabled → $ENABLED"
-else
-  # Some panels use conf.d only
-  if [[ -d /etc/nginx/conf.d ]]; then
-    sudo cp "$SRC" /etc/nginx/conf.d/hydrorage.com.tr.conf
-    echo "==> Installed → /etc/nginx/conf.d/hydrorage.com.tr.conf"
-  fi
+elif [[ -d /etc/nginx/conf.d ]]; then
+  sudo cp "$SRC" /etc/nginx/conf.d/hydrorage.com.tr.conf
+  echo "==> Installed → /etc/nginx/conf.d/hydrorage.com.tr.conf"
 fi
 
 echo "==> nginx -t"
 sudo nginx -t
 
-echo "==> reload nginx (other vhosts untouched)"
-if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet nginx; then
-  sudo systemctl reload nginx
-else
-  sudo nginx -s reload
-fi
+reload_nginx
 
 echo ""
-echo "==> Verify (Docker edge must be up on :9080):"
-echo "    curl -sI -H 'Host: hydrorage.com.tr' http://127.0.0.1:9080/ | head -5"
-echo "    curl -skI --resolve hydrorage.com.tr:443:127.0.0.1 https://hydrorage.com.tr/ | head -5"
-echo "    curl -sI https://ttengamesstudio.com.tr/ | head -3   # still TTEN"
+echo "==> Local checks:"
+curl -sI -H 'Host: hydrorage.com.tr' http://127.0.0.1:9080/ | head -3 || true
+curl -skI --resolve hydrorage.com.tr:443:127.0.0.1 https://127.0.0.1/ | head -5 || true
 echo ""
-echo "==> Done. hydrorage.* → 127.0.0.1:9080 ; other sites unchanged."
+echo "==> Public checks (after Cloudflare):"
+echo "    curl -sI https://hydrorage.com.tr/ | head -5"
+echo "    curl -sI https://ttengamesstudio.com.tr/ | head -3"
+echo "==> Done."

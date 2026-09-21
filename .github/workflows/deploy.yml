@@ -1,7 +1,6 @@
 name: Deploy
 
 # Push to main → SSH → git pull → build on VPS → zero-downtime switch.
-# No GHCR login required (repo public is enough for git clone/fetch).
 
 on:
   push:
@@ -30,21 +29,38 @@ jobs:
           script: |
             set -euo pipefail
             cd /opt/hydrorage
-            if [ -d .git ]; then
-              git fetch --depth=1 origin main
-              git reset --hard origin/main
-            else
+
+            echo "==> syncing git"
+            if [ ! -d .git ]; then
               echo "ERROR: /opt/hydrorage is not a git checkout" >&2
               exit 1
             fi
+            git fetch --depth=1 origin main
+            git reset --hard origin/main
+
+            echo "==> normalizing scripts (CRLF→LF) + executable"
+            sed -i 's/\r$//' deploy/*.sh || true
             chmod +x deploy/*.sh
+
+            if [ ! -f .env ]; then
+              echo "ERROR: missing /opt/hydrorage/.env — copy from .env.prod.example" >&2
+              exit 1
+            fi
+
             if [ ! -f ACTIVE_COLOR ]; then
-              ./deploy/bootstrap.sh local
+              echo "==> first boot → bootstrap.sh"
+              bash deploy/bootstrap.sh local
             else
-              ./deploy/zero-downtime.sh local
+              echo "==> deploy → zero-downtime.sh (active=$(cat ACTIVE_COLOR))"
+              bash deploy/zero-downtime.sh local
             fi
-            # Ensure host routes hydrorage.* (does not touch other sites)
-            if [ -x deploy/install-host-nginx.sh ]; then
-              sudo -n ./deploy/install-host-nginx.sh \
-                || echo "WARN: run once on server: sudo ./deploy/install-host-nginx.sh"
+
+            echo "==> host nginx vhost (hydrorage only)"
+            if sudo -n true 2>/dev/null; then
+              bash deploy/install-host-nginx.sh
+            else
+              echo "WARN: passwordless sudo yok. Sunucuda bir kez çalıştır:"
+              echo "      sudo bash /opt/hydrorage/deploy/install-host-nginx.sh"
             fi
+
+            echo "==> done"
