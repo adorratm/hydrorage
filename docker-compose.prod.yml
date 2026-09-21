@@ -1,10 +1,13 @@
-# Production stack — shares the VPS with other sites.
+# Production stack — builds on the VPS (no GHCR pull required).
 # Docker nginx binds ONLY to loopback (default 127.0.0.1:9080).
-# Host nginx/Caddy keeps :80/:443 for ttengamesstudio, emrekilic, kiliccoffeeroaster, etc.
-# Usage: docker compose -f docker-compose.prod.yml --env-file .env up -d
+# Host nginx keeps :80/:443 for other live sites.
+# Usage: docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 x-api-common: &api-common
-  image: ${GHCR_OWNER}/hydrorage-api:${IMAGE_TAG:-latest}
+  image: hydrorage-api:${IMAGE_TAG:-local}
+  build:
+    context: .
+    dockerfile: apps/api/Dockerfile
   env_file:
     - .env
   environment:
@@ -42,7 +45,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-hydrorage}
     volumes:
       - postgres_data:/var/lib/postgresql
-    # No host ports — does not clash with other DBs on the VPS
     healthcheck:
       test:
         [
@@ -106,7 +108,14 @@ services:
       disable: true
 
   web:
-    image: ${GHCR_OWNER}/hydrorage-web:${IMAGE_TAG:-latest}
+    image: hydrorage-web:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.hydrorage.com.tr/api}
+        VITE_ADMIN_URL: ${VITE_ADMIN_URL:-https://admin.hydrorage.com.tr}
+        VITE_PLAUSIBLE_DOMAIN: ${VITE_PLAUSIBLE_DOMAIN:-hydrorage.com.tr}
     networks:
       - hydrorage
     restart: unless-stopped
@@ -118,7 +127,13 @@ services:
       start_period: 5s
 
   admin:
-    image: ${GHCR_OWNER}/hydrorage-admin:${IMAGE_TAG:-latest}
+    image: hydrorage-admin:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.hydrorage.com.tr/api}
+        VITE_LANDING_URL: ${VITE_LANDING_URL:-https://hydrorage.com.tr}
     networks:
       - hydrorage
     restart: unless-stopped
@@ -131,7 +146,6 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
-    # Loopback only — host nginx owns :80/:443 for other live sites
     ports:
       - "${HTTP_BIND:-127.0.0.1:9080}:80"
     volumes:
