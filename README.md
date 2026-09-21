@@ -19,6 +19,8 @@ Cloudflare DNS (örnek):
 | CNAME | `api` | API host |
 | CNAME | `admin` | Admin host |
 
+Prod Docker + GH Actions (zero-downtime, shared VPS): [docs/deploy.md](docs/deploy.md)
+
 ## Gereksinimler
 
 - [Volta](https://volta.sh) (Node **26.9.0**, Yarn **4.18.0** otomatik pinlenir)

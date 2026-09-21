@@ -1,0 +1,128 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (default: commit SHA)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+      image_owner: ${{ steps.meta.outputs.owner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Image metadata
+        id: meta
+        run: |
+          OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          TAG="${{ github.event.inputs.image_tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${GITHUB_SHA}"
+          fi
+          echo "owner=${{ env.REGISTRY }}/${OWNER_LC}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.owner }}/hydrorage-api:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.owner }}/hydrorage-api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build & push web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.owner }}/hydrorage-web:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.owner }}/hydrorage-web:latest
+          build-args: |
+            VITE_API_URL=https://api.hydrorage.com.tr/api
+            VITE_ADMIN_URL=https://admin.hydrorage.com.tr
+            VITE_PLAUSIBLE_DOMAIN=hydrorage.com.tr
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: Build & push admin
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.owner }}/hydrorage-admin:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.owner }}/hydrorage-admin:latest
+          build-args: |
+            VITE_API_URL=https://api.hydrorage.com.tr/api
+            VITE_LANDING_URL=https://hydrorage.com.tr
+          cache-from: type=gha,scope=admin
+          cache-to: type=gha,mode=max,scope=admin
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          envs: GHCR_TOKEN,GHCR_USERNAME
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd /opt/hydrorage
+            if [ -n "${GHCR_TOKEN:-}" ]; then
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USERNAME:-github}" --password-stdin
+            fi
+            if [ -d .git ]; then
+              git fetch --depth=1 origin main
+              git reset --hard origin/main
+            fi
+            chmod +x deploy/zero-downtime.sh deploy/bootstrap.sh deploy/install-host-nginx.sh
+            ./deploy/zero-downtime.sh "${{ needs.build-and-push.outputs.image_tag }}"

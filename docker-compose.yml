@@ -64,6 +64,12 @@ services:
     container_name: hydrorage-api
     env_file:
       - apps/api/.env.docker
+    command:
+      [
+        "sh",
+        "-c",
+        "yarn db:migrate && yarn db:seed && node dist/main.js",
+      ]
     ports:
       - "3000:3000"
     depends_on:
@@ -75,6 +81,18 @@ services:
         condition: service_healthy
     networks:
       - hydrorage
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
 
 volumes:
   postgres_data:

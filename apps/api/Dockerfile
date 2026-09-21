@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM node:26.9.0-alpine AS deps
 WORKDIR /app
 RUN corepack enable && corepack prepare yarn@4.18.0 --activate
@@ -22,4 +23,6 @@ RUN corepack enable && corepack prepare yarn@4.18.0 --activate
 COPY --from=build /app /app
 WORKDIR /app/apps/api
 EXPOSE 3000
-CMD ["sh", "-c", "yarn db:migrate && yarn db:seed && node dist/main.js"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "dist/main.js"]

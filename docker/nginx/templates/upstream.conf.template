@@ -1,0 +1,4 @@
+# Written by deploy/zero-downtime.sh — do not edit by hand during deploy.
+upstream api_upstream {
+  server api_COLOR:3000;
+}

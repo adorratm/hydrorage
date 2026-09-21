@@ -1,0 +1,154 @@
+# Production stack — shares the VPS with other sites.
+# Docker nginx binds ONLY to loopback (default 127.0.0.1:9080).
+# Host nginx/Caddy keeps :80/:443 for ttengamesstudio, emrekilic, kiliccoffeeroaster, etc.
+# Usage: docker compose -f docker-compose.prod.yml --env-file .env up -d
+
+x-api-common: &api-common
+  image: ${GHCR_OWNER}/hydrorage-api:${IMAGE_TAG:-latest}
+  env_file:
+    - .env
+  environment:
+    NODE_ENV: production
+    PORT: "3000"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    pgbouncer:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - hydrorage
+  restart: unless-stopped
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "node",
+        "-e",
+        "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+      ]
+    interval: 10s
+    timeout: 5s
+    retries: 6
+    start_period: 40s
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hydrorage}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-hydrorage}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    # No host ports — does not clash with other DBs on the VPS
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-hydrorage} -d ${POSTGRES_DB:-hydrorage}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - hydrorage
+    restart: unless-stopped
+
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.23.1-p2
+    entrypoint: ["/usr/bin/pgbouncer"]
+    command: ["/etc/pgbouncer/pgbouncer.ini"]
+    volumes:
+      - ./docker/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./docker/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - hydrorage
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - hydrorage
+    restart: unless-stopped
+
+  api_blue:
+    <<: *api-common
+    profiles: ["blue", "all"]
+
+  api_green:
+    <<: *api-common
+    profiles: ["green", "all"]
+
+  migrate:
+    <<: *api-common
+    profiles: ["migrate"]
+    command: ["sh", "-c", "yarn db:migrate && yarn db:seed"]
+    restart: "no"
+    healthcheck:
+      disable: true
+
+  web:
+    image: ${GHCR_OWNER}/hydrorage-web:${IMAGE_TAG:-latest}
+    networks:
+      - hydrorage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  admin:
+    image: ${GHCR_OWNER}/hydrorage-admin:${IMAGE_TAG:-latest}
+    networks:
+      - hydrorage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  nginx:
+    image: nginx:1.27-alpine
+    # Loopback only — host nginx owns :80/:443 for other live sites
+    ports:
+      - "${HTTP_BIND:-127.0.0.1:9080}:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - web
+      - admin
+    networks:
+      - hydrorage
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  hydrorage:
+    name: hydrorage_net
+    driver: bridge

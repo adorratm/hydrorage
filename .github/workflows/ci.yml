@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "26.9.0"
+
+      - name: Enable Corepack (Yarn 4.18.0)
+        run: |
+          corepack enable
+          corepack prepare yarn@4.18.0 --activate
+          yarn --version
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Typecheck shared
+        run: yarn workspace @hydrorage/shared typecheck
+
+      - name: Build API
+        run: yarn workspace @hydrorage/api build
+
+      - name: Build web
+        run: yarn workspace @hydrorage/web build
+        env:
+          VITE_API_URL: https://api.hydrorage.com.tr/api
+          VITE_ADMIN_URL: https://admin.hydrorage.com.tr
+          VITE_PLAUSIBLE_DOMAIN: hydrorage.com.tr
+
+      - name: Build admin
+        run: yarn workspace @hydrorage/admin build
+        env:
+          VITE_API_URL: https://api.hydrorage.com.tr/api
+          VITE_LANDING_URL: https://hydrorage.com.tr

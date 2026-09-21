@@ -1,0 +1,6 @@
+# If the VPS edge is Caddy (not nginx), add this site block.
+# Do not remove existing site blocks for other domains.
+
+hydrorage.com.tr, www.hydrorage.com.tr, admin.hydrorage.com.tr, api.hydrorage.com.tr {
+  reverse_proxy 127.0.0.1:9080
+}
