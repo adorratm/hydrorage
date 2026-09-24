@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { localizeCharacter } from '@hydrorage/shared';
+import { fillTemplate, firstName, localizeCharacter, stripYametePhrase, withRandomJapaneseTail } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -12,6 +12,7 @@ import { speakThreat } from '@/lib/speech';
 import { colors } from '@/constants/theme';
 import { confirmAction, showAlert } from '@/lib/dialog';
 import { useLocale, useT } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
 
 type Template = {
   id: string;
@@ -25,9 +26,18 @@ type Template = {
 
 const LEVELS = ['SAFE', 'MOCKING', 'NEIGHBORHOOD', 'MILITARY', 'UNFILTERED'] as const;
 
+const LEVEL_LABEL = {
+  SAFE: 'threat.level.safe',
+  MOCKING: 'threat.level.mocking',
+  NEIGHBORHOOD: 'threat.level.neighborhood',
+  MILITARY: 'threat.level.military',
+  UNFILTERED: 'threat.level.unfiltered',
+} as const;
+
 export default function SablonlarScreen() {
   const tr = useT();
   const locale = useLocale();
+  const { user } = useAuth();
   const router = useRouter();
   const qc = useQueryClient();
   const [text, setText] = useState('');
@@ -38,6 +48,21 @@ export default function SablonlarScreen() {
     queryKey: ['templates', locale],
     queryFn: () => api<Template[]>('/templates'),
   });
+  const { data: settings } = useQuery({
+    queryKey: ['settings', locale],
+    queryFn: () =>
+      api<{ activeCharacter?: { slug?: string | null } | null }>('/settings'),
+  });
+  const { data: dash } = useQuery({
+    queryKey: ['dashboard', locale],
+    queryFn: () => api<{ remaining: number }>('/dashboard/today'),
+  });
+
+  const spoken = (text: string) =>
+    fillTemplate(text, {
+      name: firstName(user?.displayName),
+      debtMl: dash?.remaining ?? 0,
+    });
 
   const create = useMutation({
     mutationFn: () =>
@@ -106,7 +131,7 @@ export default function SablonlarScreen() {
                   level === l && { color: colors.onPrimary },
                 ]}
               >
-                {l}
+                {tr(LEVEL_LABEL[l])}
               </Text>
             </Pressable>
           ))}
@@ -131,7 +156,11 @@ export default function SablonlarScreen() {
             <View style={styles.rowBetween}>
               <Text style={styles.meta}>
                 {tpl.isSystem ? tr('templates.system') : tr('templates.yours')} ·{' '}
-                {tpl.profanityLevel} · {tpl.playCount}x
+                {tr(
+                  LEVEL_LABEL[tpl.profanityLevel as (typeof LEVELS)[number]] ??
+                    'threat.level.safe',
+                )}{' '}
+                · {tpl.playCount}x
               </Text>
               <Text
                 style={{
@@ -143,13 +172,21 @@ export default function SablonlarScreen() {
                   : tr('templates.inactive')}
               </Text>
             </View>
-            <Text style={styles.text}>“{tpl.text}”</Text>
+            <Text style={styles.text}>“{stripYametePhrase(spoken(tpl.text))}”</Text>
             {!!charName && <Text style={styles.hint}>{charName}</Text>}
             <View style={styles.actions}>
               <PrimaryButton
                 label={tr('templates.listen')}
                 variant="secondary"
-                onPress={() => speakThreat(tpl.text)}
+                onPress={() => {
+                  const slug =
+                    tpl.character?.slug ?? settings?.activeCharacter?.slug;
+                  speakThreat(
+                    withRandomJapaneseTail(spoken(tpl.text), slug, !tpl.isSystem),
+                    false,
+                    { characterSlug: slug },
+                  );
+                }}
                 style={{ flex: 1 }}
               />
               {!tpl.isSystem && (
@@ -191,8 +228,8 @@ export default function SablonlarScreen() {
 const styles = StyleSheet.create({
   back: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   backText: { color: colors.primaryContainer, fontWeight: '700' },
-  title: { color: colors.onSurface, fontSize: 16, fontWeight: '800' },
-  hint: { color: colors.muted, fontSize: 11, marginTop: 4 },
+  title: { color: colors.onSurface, fontSize: 16, fontWeight: '700' },
+  hint: { color: colors.muted, fontSize: 14, marginTop: 4 },
   input: {
     marginTop: 8,
     minHeight: 90,
@@ -210,13 +247,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceContainerHighest,
   },
   chipActive: { backgroundColor: colors.accent },
-  chipText: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
+  chipText: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  meta: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
-  text: { color: colors.onSurface, marginTop: 8, fontSize: 13 },
+  meta: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
+  text: { color: colors.onSurface, marginTop: 8, fontSize: 16 },
   actions: { flexDirection: 'row', gap: 6, marginTop: 10 },
 });

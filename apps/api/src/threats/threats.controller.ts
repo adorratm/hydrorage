@@ -16,7 +16,6 @@ import {
   ThreatEvent,
   ThreatTemplate,
   User,
-  UserSettings,
 } from '@/database/entities';
 import { ThreatStatus } from '@/database/enums';
 import { TemplatesService } from '@/templates/templates.service';
@@ -76,6 +75,7 @@ export class ThreatsController {
     let text: string;
     let templateId: string | null = null;
     let characterId: string | null = null;
+    let characterSlug: string | null = null;
 
     if (dto.templateId) {
       const tpl = await this.em.findOne(ThreatTemplate, {
@@ -89,16 +89,19 @@ export class ThreatsController {
         text = picked.text;
         templateId = tpl.id;
         characterId = tpl.characterId;
+        characterSlug = tpl.character?.slug ?? picked.characterSlug ?? null;
       } else {
         text = tpl.text;
         templateId = tpl.id;
         characterId = tpl.characterId;
+        characterSlug = tpl.character?.slug ?? null;
       }
     } else {
       const picked = await this.templates.pickForUser(user.userId, locale);
       text = picked.text;
       templateId = picked.templateId;
       characterId = picked.characterId;
+      characterSlug = picked.characterSlug;
     }
 
     return {
@@ -108,38 +111,29 @@ export class ThreatsController {
       }),
       templateId,
       characterId,
+      characterSlug,
     };
   }
 
-  @Post('schedule-next')
-  async scheduleNext(
+  @Post('start')
+  start(
     @CurrentUser() user: { userId: string },
     @Locale() locale: AppLocale,
   ) {
-    const settings = await this.em.findOneBy(UserSettings, {
-      userId: user.userId,
-    });
-    const interval = settings?.waterIntervalMinutes ?? 45;
-    const scheduledAt = new Date(Date.now() + interval * 60_000);
-    const me = await this.em.findOneByOrFail(User, { id: user.userId });
-    const picked = await this.templates.pickForUser(user.userId, locale);
-    const message = fillTemplate(picked.text, {
-      name: firstNameLocalized(me.displayName, locale),
-      debtMl: 300,
-    });
-    const threat = await this.em.save(
-      this.em.create(ThreatEvent, {
-        userId: user.userId,
-        templateId: picked.templateId,
-        characterId: picked.characterId,
-        message,
-        status: ThreatStatus.PENDING,
-        scheduledAt,
-      }),
-    );
-    await this.threatsQueue.scheduleDue(threat, locale);
-    this.realtime.threatScheduled(user.userId, threat);
-    return threat;
+    return this.threatsQueue.startReminders(user.userId, locale);
+  }
+
+  @Post('stop')
+  stop(@CurrentUser() user: { userId: string }) {
+    return this.threatsQueue.stopReminders(user.userId);
+  }
+
+  @Post('schedule-next')
+  scheduleNext(
+    @CurrentUser() user: { userId: string },
+    @Locale() locale: AppLocale,
+  ) {
+    return this.threatsQueue.startReminders(user.userId, locale);
   }
 
   @Post(':id/snooze')

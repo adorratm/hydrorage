@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { fillTemplate, localizeCharacter, sampleLineForCharacter } from '@hydrorage/shared';
+import { localizeCharacter, sampleLineForCharacter } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -113,12 +113,9 @@ export default function KarakterlerScreen() {
       {(data ?? []).map((c) => {
         const meta = display(c);
         return (
-          <Card key={c.id} style={!c.unlocked ? { opacity: 0.7 } : undefined}>
+          <Card key={c.id}>
             <View style={styles.rowBetween}>
               <Text style={styles.charName}>{meta.name}</Text>
-              {!c.unlocked ? (
-                <Text style={styles.lockBadge}>🔒 {c.unlockStreakDays}d</Text>
-              ) : null}
             </View>
             <Text style={styles.body}>{meta.description}</Text>
             <View style={styles.actions}>
@@ -129,24 +126,11 @@ export default function KarakterlerScreen() {
                   speakThreat(sampleFor(c), false, { characterSlug: c.slug })
                 }
                 style={{ flex: 1 }}
-                disabled={!c.unlocked}
               />
               <PrimaryButton
-                label={c.unlocked ? tr('common.ok') : '🔒'}
-                onPress={() => {
-                  if (!c.unlocked) {
-                    Alert.alert(
-                      tr('threat.locked'),
-                      fillTemplate(tr('threat.lockedBody'), {
-                        days: c.unlockStreakDays,
-                      }),
-                    );
-                    return;
-                  }
-                  select.mutate(c.id);
-                }}
+                label={tr('common.ok')}
+                onPress={() => select.mutate(c.id)}
                 style={{ flex: 1 }}
-                disabled={!c.unlocked}
               />
             </View>
           </Card>
@@ -196,26 +180,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: { color: colors.onSurface, fontSize: 18, fontWeight: '800', flex: 1 },
+  title: { color: colors.onSurface, fontSize: 20, fontWeight: '700', flex: 1 },
   badge: {
     backgroundColor: colors.errorContainer,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
   },
-  badgeText: { color: colors.error, fontSize: 10, fontWeight: '800' },
+  badgeText: { color: colors.error, fontSize: 14, fontWeight: '700' },
   lockBadge: {
     color: colors.warning,
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
   },
   activeLabel: {
     color: colors.primaryContainer,
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     marginTop: 6,
   },
-  body: { color: colors.onSurfaceVariant, marginTop: 6, fontSize: 13 },
+  body: { color: colors.onSurfaceVariant, marginTop: 6, fontSize: 16 },
   stats: { flexDirection: 'row', gap: 8, marginTop: 12 },
   mini: {
     flex: 1,
@@ -225,11 +209,11 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     color: colors.onSurfaceVariant,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
   },
-  miniVal: { color: colors.onSurface, fontWeight: '800', marginTop: 2 },
-  section: { color: colors.primary, fontSize: 16, fontWeight: '800' },
-  charName: { color: colors.onSurface, fontWeight: '800', fontSize: 15 },
+  miniVal: { color: colors.onSurface, fontWeight: '700', marginTop: 2 },
+  section: { color: colors.primary, fontSize: 16, fontWeight: '700' },
+  charName: { color: colors.onSurface, fontWeight: '700', fontSize: 16 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 10 },
 });

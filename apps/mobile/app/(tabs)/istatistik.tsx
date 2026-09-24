@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect } from 'react-native-svg';
@@ -9,7 +10,8 @@ import { WeeklyShareCard } from '@/components/WeeklyShareCard';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
 import { colors } from '@/constants/theme';
-import { useT } from '@/lib/i18n';
+import { useLocale, useT } from '@/lib/i18n';
+import { AdBanner } from '@/components/AdBanner';
 
 type Weekly = {
   rageLevel: number;
@@ -41,10 +43,17 @@ type Weekly = {
 
 export default function IstatistikScreen() {
   const tr = useT();
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['stats-weekly'],
+  const locale = useLocale();
+  const { data, isFetching, isError, refetch } = useQuery({
+    queryKey: ['stats-weekly', locale],
     queryFn: () => api<Weekly>('/stats/weekly'),
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   const maxL = Math.max(2.5, ...(data?.daily.map((d) => d.liters) ?? [2.5]));
 
@@ -57,7 +66,11 @@ export default function IstatistikScreen() {
         if (data?.shareQuote) void speakThreat(data.shareQuote);
         else void speakThreat(tr('empty.threatsBody'));
       }}
+      footer={<AdBanner />}
     >
+      {isError ? (
+        <Text style={styles.flavor}>{tr('common.error')}</Text>
+      ) : null}
       {data ? (
         <WeeklyShareCard
           rageLevel={data.rageLevel}
@@ -163,7 +176,7 @@ export default function IstatistikScreen() {
       <Card>
         <View style={styles.rowBetween}>
           <Text style={styles.section}>{tr('stats.title')}</Text>
-          <Text style={{ color: colors.error, fontWeight: '800' }}>
+          <Text style={{ color: colors.error, fontWeight: '700' }}>
             {data?.risk ?? '—'}
           </Text>
         </View>
@@ -214,15 +227,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  title: { color: colors.primary, fontSize: 22, fontWeight: '800', flex: 1 },
+  title: { color: colors.primary, fontSize: 20, fontWeight: '700', flex: 1 },
   ragePill: {
     backgroundColor: colors.errorContainer,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
   },
-  ragePillText: { color: colors.error, fontSize: 10, fontWeight: '800' },
-  flavor: { color: colors.onSurfaceVariant, fontSize: 13 },
+  ragePillText: { color: colors.error, fontSize: 14, fontWeight: '700' },
+  flavor: { color: colors.onSurfaceVariant, fontSize: 16 },
   gradeBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -231,14 +244,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
   },
-  grade: { color: colors.error, fontSize: 16, fontWeight: '800' },
+  grade: { color: colors.error, fontSize: 16, fontWeight: '700' },
   statsRow: { flexDirection: 'row', marginTop: 12 },
-  statN: { color: colors.onSurface, fontSize: 24, fontWeight: '800' },
+  statN: { color: colors.onSurface, fontSize: 28, fontWeight: '700' },
   section: { color: colors.onSurface, fontSize: 16, fontWeight: '700' },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
+  metricLabel: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
   chart: { marginTop: 8 },
   dayLabels: { flexDirection: 'row', justifyContent: 'space-around' },
-  dayLabel: { color: colors.muted, fontSize: 10, width: 38, textAlign: 'center' },
+  dayLabel: { color: colors.muted, fontSize: 14, width: 38, textAlign: 'center' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 },
   scoldRow: {
     flexDirection: 'row',
@@ -247,13 +260,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(98,114,164,0.25)',
   },
-  scoldText: { color: colors.onSurface, fontSize: 13 },
+  scoldText: { color: colors.onSurface, fontSize: 16 },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  body: { color: colors.onSurface, marginTop: 8, fontWeight: '600' },
+  body: { color: colors.onSurface, marginTop: 8, fontWeight: '700' },
   barTrack: {
     height: 10,
     backgroundColor: colors.surfaceContainerHighest,

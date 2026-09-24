@@ -3,13 +3,11 @@ import Constants from 'expo-constants';
 import { AppState, Platform } from 'react-native';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
-import { notificationTitle } from '@/lib/tone';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => {
     const active = AppState.currentState === 'active';
     return {
-      shouldShowAlert: true,
       shouldPlaySound: !active,
       shouldSetBadge: false,
       shouldShowBanner: true,
@@ -50,34 +48,6 @@ export async function registerExpoPushToken() {
     console.warn('[push] token alınamadı', e);
     return null;
   }
-}
-
-export async function scheduleWaterReminder(
-  minutesFromNow: number,
-  body: string,
-  plus18Mode = true,
-) {
-  await ensureNotificationPermissions();
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('rage', {
-      name: plus18Mode ? 'HydroRage Tehditleri' : 'HydroRage Hatırlatmalar',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF5555',
-    });
-  }
-  return Notifications.scheduleNotificationAsync({
-    content: {
-      title: notificationTitle(plus18Mode),
-      body,
-      sound: true,
-      ...(Platform.OS === 'android' ? { channelId: 'rage' } : {}),
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: Math.max(60, minutesFromNow * 60),
-    },
-  });
 }
 
 async function voiceAllowed(): Promise<{
@@ -140,17 +110,35 @@ async function voiceAllowed(): Promise<{
   }
 }
 
-async function speakNotificationBody(body: string | null | undefined) {
+const spokenIds = new Set<string>();
+
+async function speakNotificationBody(
+  body: string | null | undefined,
+  data?: { locale?: string; characterSlug?: string; yameteSound?: boolean },
+) {
   const text = (body ?? '').trim();
   if (!text) return;
   const { ok, muted, whisper, whisperVolume, characterSlug } =
     await voiceAllowed();
   if (!ok) return;
+  const locale = data?.locale === 'en' || data?.locale === 'tr' ? data.locale : undefined;
   await speakThreat(text, muted, {
-    characterSlug,
+    characterSlug: data?.characterSlug || characterSlug,
+    locale,
     silent: true,
     volume: whisper ? Math.max(0.05, whisperVolume / 100) : 1,
+    yameteSound: data?.yameteSound === true,
   });
+}
+
+function speakOnce(notification: Notifications.Notification) {
+  const id = notification.request.identifier;
+  if (spokenIds.has(id)) return;
+  spokenIds.add(id);
+  const data = notification.request.content.data as
+    | { locale?: string; characterSlug?: string; yameteSound?: boolean }
+    | undefined;
+  void speakNotificationBody(notification.request.content.body, data);
 }
 
 let subscribed = false;
@@ -161,11 +149,15 @@ export function startNotificationSpeechListeners() {
 
   const received = Notifications.addNotificationReceivedListener((n) => {
     if (AppState.currentState !== 'active') return;
-    void speakNotificationBody(n.request.content.body);
+    speakOnce(n);
   });
 
   const response = Notifications.addNotificationResponseReceivedListener((r) => {
-    void speakNotificationBody(r.notification.request.content.body);
+    speakOnce(r.notification);
+  });
+
+  void Notifications.getLastNotificationResponseAsync().then((response) => {
+    if (response) speakOnce(response.notification);
   });
 
   return () => {

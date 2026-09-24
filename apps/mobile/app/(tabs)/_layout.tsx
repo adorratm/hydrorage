@@ -20,7 +20,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primaryContainer,
         tabBarInactiveTintColor: colors.onSurfaceVariant,
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 14,
           fontWeight: '700',
           fontFamily: 'Ubuntu_700Bold',
         },

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -18,10 +18,28 @@ import {
   QUICK_ADD_PRESETS,
   DEFAULT_QUICK_DRINK_ML,
   localeTag,
+  stripYametePhrase,
 } from '@hydrorage/shared';
 import { buildWidgetPayload, publishWidgetPayload } from '@/lib/widget';
 import { useLocale, useT } from '@/lib/i18n';
 import { showAlert } from '@/lib/dialog';
+import { maybeShowInterstitial } from '@/lib/ads';
+
+function threatStatusLabel(
+  status: string,
+  tr: (
+    key:
+      | 'threat.status.pending'
+      | 'threat.status.played'
+      | 'threat.status.completed'
+      | 'threat.status.missed',
+  ) => string,
+) {
+  if (status === 'PLAYED') return tr('threat.status.played');
+  if (status === 'COMPLETED') return tr('threat.status.completed');
+  if (status === 'MISSED') return tr('threat.status.missed');
+  return tr('threat.status.pending');
+}
 
 type Dashboard = {
   goalMl: number;
@@ -38,12 +56,14 @@ type Dashboard = {
     id: string;
     message: string;
     scheduledAt: string;
+    character?: { slug?: string | null } | null;
   };
   recentThreats: Array<{
     id: string;
     message: string;
     status: string;
     scheduledAt: string;
+    character?: { slug?: string | null } | null;
   }>;
 };
 
@@ -57,6 +77,12 @@ export default function TakipScreen() {
     queryKey: ['dashboard', locale],
     queryFn: () => api<Dashboard>('/dashboard/today'),
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   useEffect(() => {
     if (!data) return;
@@ -106,21 +132,30 @@ export default function TakipScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       qc.invalidateQueries({ queryKey: ['dashboard'] });
       qc.invalidateQueries({ queryKey: ['intake'] });
+      void maybeShowInterstitial();
     },
     onError: (e: Error) => showAlert(tr('common.error'), e.message),
   });
 
   const playHeaderVolume = useCallback(async () => {
     if (data?.nextThreat?.message) {
-      await speakThreat(data.nextThreat.message);
+      await speakThreat(data.nextThreat.message, false, {
+        characterSlug: data.nextThreat.character?.slug ?? undefined,
+      });
       return;
     }
     try {
-      const res = await api<{ message: string }>('/threats/preview', {
-        method: 'POST',
-        body: JSON.stringify({}),
+      const res = await api<{ message: string; characterSlug?: string | null }>(
+        '/threats/preview',
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+        },
+      );
+      await speakThreat(res.message, false, {
+        forceSpeak: true,
+        characterSlug: res.characterSlug ?? undefined,
       });
-      await speakThreat(res.message, false, { forceSpeak: true });
     } catch (e) {
       await speakThreat(
         tr('track.voiceTest'),
@@ -184,12 +219,16 @@ export default function TakipScreen() {
             <Ionicons name="megaphone" size={20} color={colors.error} />
             <View style={{ flex: 1 }}>
               <Text style={styles.threatText} numberOfLines={2}>
-                “{data.nextThreat.message}”
+                “{stripYametePhrase(data.nextThreat.message)}”
               </Text>
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                 <Pressable
                   style={styles.listenBtn}
-                  onPress={() => speakThreat(data.nextThreat!.message)}
+                  onPress={() =>
+                    speakThreat(data.nextThreat!.message, false, {
+                      characterSlug: data.nextThreat!.character?.slug ?? undefined,
+                    })
+                  }
                   accessibilityRole="button"
                   accessibilityLabel={tr('threat.listen')}
                 >
@@ -348,10 +387,16 @@ export default function TakipScreen() {
                   minute: '2-digit',
                 })}
               </Text>
-              <Text style={styles.pctText}>{item.status}</Text>
+              <Text style={styles.pctText}>{threatStatusLabel(item.status, tr)}</Text>
             </View>
-            <Text style={styles.threatListText}>“{item.message}”</Text>
-            <Pressable onPress={() => speakThreat(item.message)}>
+            <Text style={styles.threatListText}>“{stripYametePhrase(item.message)}”</Text>
+            <Pressable
+              onPress={() =>
+                speakThreat(item.message, false, {
+                  characterSlug: item.character?.slug ?? undefined,
+                })
+              }
+            >
               <Text style={styles.listenText}>{tr('threat.listen')}</Text>
             </Pressable>
           </Card>
@@ -381,14 +426,14 @@ const styles = StyleSheet.create({
   },
   labelError: {
     color: colors.error,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   chip: {
     color: colors.onSurfaceVariant,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     backgroundColor: colors.surfaceContainerHighest,
     paddingHorizontal: 6,
@@ -417,26 +462,27 @@ const styles = StyleSheet.create({
   threatText: {
     flex: 1,
     color: colors.error,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
   },
   listenBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
     backgroundColor: colors.surfaceContainer,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minHeight: 44,
   },
-  listenText: { color: colors.primaryContainer, fontSize: 10, fontWeight: '700' },
+  listenText: { color: colors.primaryContainer, fontSize: 14, fontWeight: '700' },
   sectionLabel: {
     color: colors.onSurfaceVariant,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
-  sectionTitle: { color: colors.onSurface, fontSize: 18, fontWeight: '700' },
+  sectionTitle: { color: colors.onSurface, fontSize: 20, fontWeight: '700' },
   pctChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -446,7 +492,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
   },
-  pctText: { color: colors.primaryContainer, fontSize: 10, fontWeight: '700' },
+  pctText: { color: colors.primaryContainer, fontSize: 14, fontWeight: '700' },
   gaugeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -454,8 +500,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   metrics: { flex: 1, paddingLeft: 8 },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
-  metricValue: { color: colors.onSurface, fontSize: 18, fontWeight: '700' },
+  metricLabel: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
+  metricValue: { color: colors.onSurface, fontSize: 20, fontWeight: '700' },
   statusDot: {
     width: 8,
     height: 8,
@@ -464,7 +510,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: colors.primaryContainer,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.4,
   },
@@ -475,7 +521,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
-  statError: { color: colors.error, fontSize: 22, fontWeight: '800' },
+  statError: { color: colors.error, fontSize: 20, fontWeight: '700' },
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   quickCard: {
     width: '48%',
@@ -497,7 +543,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quickLabel: { color: colors.onSurface, fontSize: 12, fontWeight: '700' },
-  quickAmount: { color: colors.primaryContainer, fontSize: 12, fontWeight: '800' },
-  threatListText: { color: colors.onSurface, fontSize: 12, marginVertical: 6 },
+  quickLabel: { color: colors.onSurface, fontSize: 16, fontWeight: '700' },
+  quickAmount: { color: colors.primaryContainer, fontSize: 16, fontWeight: '700' },
+  threatListText: { color: colors.onSurface, fontSize: 16, marginVertical: 6 },
 });

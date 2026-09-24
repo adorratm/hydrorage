@@ -158,6 +158,10 @@ export default function ProfileScreen() {
               key={code}
               onPress={() => {
                 void setLocale(code).then(() => {
+                  void api('/settings', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ locale: code }),
+                  }).catch(() => {});
                   void qc.invalidateQueries();
                 });
               }}
@@ -210,12 +214,12 @@ const styles = StyleSheet.create({
   title: {
     color: colors.primaryContainer,
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   sub: { color: colors.onSurfaceVariant },
   label: {
     color: colors.onSurfaceVariant,
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     marginBottom: 6,
   },
@@ -225,9 +229,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     color: colors.onSurface,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  meta: { color: colors.muted, marginTop: 8, fontSize: 12 },
+  meta: { color: colors.muted, marginTop: 8, fontSize: 16 },
   row: { flexDirection: 'row', gap: 8 },
   chip: {
     paddingHorizontal: 12,
@@ -236,11 +240,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceContainerHighest,
   },
   chipOn: { backgroundColor: colors.accent },
-  chipText: { color: colors.onSurface, fontWeight: '700', fontSize: 12 },
+  chipText: { color: colors.onSurface, fontWeight: '700', fontSize: 16 },
   disclaimerTitle: {
     color: colors.warning,
-    fontWeight: '800',
+    fontWeight: '700',
     marginBottom: 6,
   },
-  disclaimer: { color: colors.onSurfaceVariant, fontSize: 13, lineHeight: 18 },
+  disclaimer: { color: colors.onSurfaceVariant, fontSize: 16, lineHeight: 18 },
 });

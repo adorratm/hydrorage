@@ -39,7 +39,15 @@ export const spacing = {
   md: 16,
   lg: 24,
   xl: 32,
-  margin: 20,
+  margin: 16,
+} as const;
+
+/** SKILL.md: dört boyut, iki ağırlık (Regular / Bold). */
+export const type = {
+  caption: 14,
+  body: 16,
+  title: 20,
+  display: 28,
 } as const;
 
 export { fonts, font } from '@/constants/fonts';

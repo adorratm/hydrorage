@@ -59,6 +59,12 @@ export class User {
   @Column({ type: 'text', nullable: true })
   expoPushToken!: string | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  lastAppOpenedAt!: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  lastComebackAt!: Date | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
@@ -210,6 +216,17 @@ export class UserSettings {
 
   @Column({ type: 'int', default: 45 })
   waterIntervalMinutes!: number;
+
+  /** Kullanıcı kapatana kadar su hatırlatması sürer. */
+  @Column({ type: 'boolean', default: false })
+  remindersEnabled!: boolean;
+
+  /** Su içilmeden art arda giden 5 dk takip sayısı. */
+  @Column({ type: 'int', default: 0 })
+  nagCount!: number;
+
+  @Column({ type: 'text', default: 'tr' })
+  locale!: string;
 
   @Column({ type: 'boolean', default: true })
   publicShameProtection!: boolean;

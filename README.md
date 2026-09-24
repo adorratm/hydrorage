@@ -23,7 +23,7 @@ Prod Docker + GH Actions (zero-downtime, shared VPS): [docs/deploy.md](docs/depl
 
 ## Gereksinimler
 
-- [Volta](https://volta.sh) (Node **26.9.0**, Yarn **4.18.0** otomatik pinlenir)
+- [Volta](https://volta.sh) (Node **26.10.0**, Yarn **4.18.0** otomatik pinlenir)
 - Docker Desktop (API + Postgres + PgBouncer + Redis)
 - Expo Go veya native toolchain (iOS için macOS)
 

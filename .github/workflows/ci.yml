@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "26.9.0"
+          node-version: "26.10.0"
 
       - name: Enable Corepack (Yarn 4.18.0)
         run: |

@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  text: { color: colors.error, flex: 1, fontSize: 12, fontWeight: '700' },
-  retry: { color: colors.onSurface, fontSize: 12, fontWeight: '800' },
+  text: { color: colors.error, flex: 1, fontSize: 16, fontWeight: '700' },
+  retry: { color: colors.onSurface, fontSize: 16, fontWeight: '700' },
 });

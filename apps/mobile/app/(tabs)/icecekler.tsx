@@ -17,6 +17,7 @@ import {
 import { caffeineAlertBody, isPlus18 } from '@/lib/tone';
 import { confirmAction, promptText, showAlert } from '@/lib/dialog';
 import { speakThreat } from '@/lib/speech';
+import { maybeShowInterstitial } from '@/lib/ads';
 import { useLocale, useT } from '@/lib/i18n';
 
 type Dashboard = {
@@ -111,6 +112,7 @@ export default function IceceklerScreen() {
     onSuccess: () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       qc.invalidateQueries({ queryKey: ['dashboard'] });
+      void maybeShowInterstitial();
     },
     onError: (e: Error) => showAlert(tr('common.error'), e.message),
   });
@@ -408,16 +410,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: { color: colors.onSurface, fontSize: 18, fontWeight: '700' },
+  title: { color: colors.onSurface, fontSize: 20, fontWeight: '700' },
   scoreBadge: {
     backgroundColor: colors.secondaryContainer,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
   },
-  scoreText: { color: colors.secondary, fontSize: 10, fontWeight: '800' },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
-  big: { color: colors.onSurface, fontSize: 22, fontWeight: '800' },
+  scoreText: { color: colors.secondary, fontSize: 14, fontWeight: '700' },
+  metricLabel: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
+  big: { color: colors.onSurface, fontSize: 20, fontWeight: '700' },
   barTrack: {
     height: 10,
     backgroundColor: colors.surfaceContainerHighest,
@@ -436,8 +438,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  alertTitle: { color: colors.error, fontSize: 12, fontWeight: '800' },
-  alertBody: { color: colors.onSurface, fontSize: 12, marginTop: 2 },
+  alertTitle: { color: colors.error, fontSize: 16, fontWeight: '700' },
+  alertBody: { color: colors.onSurface, fontSize: 16, marginTop: 2 },
   filters: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   filterChip: {
     paddingHorizontal: 12,
@@ -450,9 +452,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primaryContainer,
   },
-  filterText: { color: colors.onSurfaceVariant, fontSize: 12, fontWeight: '700' },
+  filterText: { color: colors.onSurfaceVariant, fontSize: 16, fontWeight: '700' },
   itemTitle: { color: colors.onSurface, fontWeight: '700' },
-  itemMeta: { color: colors.onSurfaceVariant, fontSize: 12, marginTop: 4 },
+  itemMeta: { color: colors.onSurfaceVariant, fontSize: 16, marginTop: 4 },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   typeBtn: {
     width: '22%',
@@ -466,7 +468,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   typeActive: { borderColor: colors.primaryContainer },
-  typeLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '600' },
+  typeLabel: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
   volRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   volBtn: {
     paddingHorizontal: 14,
@@ -479,8 +481,8 @@ const styles = StyleSheet.create({
   volSelected: {
     marginTop: 12,
     color: colors.primaryContainer,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   volAdjust: { flexDirection: 'row', gap: 8, marginTop: 8 },
@@ -494,9 +496,9 @@ const styles = StyleSheet.create({
   adjustText: { color: colors.onSurface, fontWeight: '700' },
   protocol: {
     color: colors.error,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     letterSpacing: 1,
   },
-  protocolBody: { color: colors.onSurface, marginTop: 8, fontSize: 13 },
+  protocolBody: { color: colors.onSurface, marginTop: 8, fontSize: 16 },
 });

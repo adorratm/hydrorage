@@ -10,19 +10,21 @@ import {
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { fillTemplate, localizeCharacter } from '@hydrorage/shared';
+import { fillTemplate, localizeCharacter, stripYametePhrase, withRandomJapaneseTail } from '@hydrorage/shared';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { api } from '@/lib/api';
 import { speakThreat } from '@/lib/speech';
-import { scheduleWaterReminder } from '@/lib/notifications';
+import { AdBanner } from '@/components/AdBanner';
+import { markReminderStarted } from '@/lib/ads';
 import { colors } from '@/constants/theme';
 import { fallbackThreat, isPlus18 } from '@/lib/tone';
 import { getLocale, setLocale, useLocale, useT } from '@/lib/i18n';
 
 type Settings = {
   voiceNotifications: boolean;
+  remindersEnabled?: boolean;
   plus18Mode: boolean;
   profanityLevel: 'SAFE' | 'MOCKING' | 'NEIGHBORHOOD' | 'MILITARY' | 'UNFILTERED';
   activeCharacterId: string | null;
@@ -92,11 +94,12 @@ export default function TehditScreen() {
         method: 'POST',
         body: JSON.stringify({}),
       });
-      setPreview(res.message);
       const slug =
         settings?.activeCharacter?.slug ??
         characters?.find((c) => c.id === settings?.activeCharacterId)?.slug;
-      await speakThreat(res.message, false, {
+      const message = withRandomJapaneseTail(res.message, slug, true);
+      setPreview(stripYametePhrase(message));
+      await speakThreat(message, false, {
         forceSpeak: true,
         characterSlug: slug,
       });
@@ -105,18 +108,21 @@ export default function TehditScreen() {
     }
   };
 
-  const onSaveStart = async () => {
+  const remindersOn = settings?.remindersEnabled === true;
+
+  const onToggleReminders = async () => {
     try {
-      const threat = await api<{ message: string; scheduledAt: string }>(
-        '/threats/schedule-next',
-        { method: 'POST', body: '{}' },
-      );
-      await scheduleWaterReminder(
-        settings?.waterIntervalMinutes ?? 45,
-        threat.message,
-        plus18,
-      );
-      Alert.alert(tr('threat.title'), tr('threat.start'));
+      if (remindersOn) {
+        await api('/threats/stop', { method: 'POST', body: '{}' });
+        Alert.alert(tr('threat.title'), tr('threat.stopped'));
+      } else {
+        await api('/threats/start', { method: 'POST', body: '{}' });
+        await markReminderStarted();
+        Alert.alert(tr('threat.title'), tr('threat.started'));
+      }
+      await qc.invalidateQueries({ queryKey: ['settings'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'] });
+      if (!remindersOn) router.replace('/(tabs)/takip');
     } catch (e: any) {
       Alert.alert(tr('common.error'), e.message);
     }
@@ -130,6 +136,7 @@ export default function TehditScreen() {
       refreshing={isFetching}
       onRefresh={() => refetch()}
       onPressVolume={onTest}
+      footer={<AdBanner />}
     >
       <Card danger={plus18}>
         <Text style={[styles.heroTitle, !plus18 && styles.heroTitleSafe]}>
@@ -168,6 +175,10 @@ export default function TehditScreen() {
               key={code}
               onPress={() => {
                 void setLocale(code).then(() => {
+                  void api('/settings', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ locale: code }),
+                  }).catch(() => {});
                   void qc.invalidateQueries();
                 });
               }}
@@ -254,39 +265,22 @@ export default function TehditScreen() {
           return (
             <Pressable
               key={c.id}
-              onPress={() => {
-                if (!c.unlocked) {
-                  Alert.alert(
-                    tr('threat.locked'),
-                    fillTemplate(tr('threat.lockedBody'), {
-                      days: c.unlockStreakDays ?? '?',
-                    }),
-                  );
-                  return;
-                }
-                patch({ activeCharacterId: c.id });
-              }}
+              onPress={() => patch({ activeCharacterId: c.id })}
               style={[
                 styles.charRow,
                 settings?.activeCharacterId === c.id && styles.charActive,
-                !c.unlocked && { opacity: 0.5 },
               ]}
             >
               <Ionicons
                 name={
-                  !c.unlocked
-                    ? 'lock-closed'
-                    : settings?.activeCharacterId === c.id
-                      ? 'radio-button-on'
-                      : 'radio-button-off'
+                  settings?.activeCharacterId === c.id
+                    ? 'radio-button-on'
+                    : 'radio-button-off'
                 }
                 size={18}
                 color={colors.primaryContainer}
               />
-              <Text style={styles.charName}>
-                {meta.name}
-                {!c.unlocked ? ` · ${c.unlockStreakDays}d` : ''}
-              </Text>
+              <Text style={styles.charName}>{meta.name}</Text>
             </Pressable>
           );
         })}
@@ -440,8 +434,9 @@ export default function TehditScreen() {
       </View>
 
       <PrimaryButton
-        label={tr('threat.start')}
-        onPress={onSaveStart}
+        label={remindersOn ? tr('threat.stop') : tr('threat.start')}
+        variant={remindersOn ? 'danger' : 'primary'}
+        onPress={onToggleReminders}
         loading={save.isPending}
       />
       <Text style={styles.disclaimer}>
@@ -459,24 +454,24 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: colors.error,
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   heroTitleSafe: {
     color: colors.primaryContainer,
   },
-  heroBody: { color: colors.onSurface, marginTop: 6, fontSize: 13 },
-  title: { color: colors.primary, fontSize: 18, fontWeight: '800' },
+  heroBody: { color: colors.onSurface, marginTop: 6, fontSize: 16 },
+  title: { color: colors.primary, fontSize: 20, fontWeight: '700' },
   live: {
     backgroundColor: colors.danger,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
   },
-  liveText: { color: colors.onPrimary, fontSize: 10, fontWeight: '800' },
-  body: { color: colors.onSurface, fontSize: 14, fontWeight: '600' },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
+  liveText: { color: colors.onPrimary, fontSize: 14, fontWeight: '700' },
+  body: { color: colors.onSurface, fontSize: 14, fontWeight: '700' },
+  metricLabel: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   levelChip: {
     paddingHorizontal: 10,
@@ -485,7 +480,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceContainerHighest,
   },
   levelActive: { backgroundColor: colors.accent },
-  levelText: { color: colors.onSurfaceVariant, fontSize: 11, fontWeight: '700' },
+  levelText: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
   charRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,8 +490,8 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(98,114,164,0.25)',
   },
   charActive: { backgroundColor: 'rgba(189,147,249,0.12)' },
-  charName: { color: colors.onSurface, flex: 1, fontWeight: '600' },
-  preview: { color: colors.onSurface, marginVertical: 10, fontSize: 13 },
+  charName: { color: colors.onSurface, flex: 1, fontWeight: '700' },
+  preview: { color: colors.onSurface, marginVertical: 10, fontSize: 16 },
   checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -506,7 +501,7 @@ const styles = StyleSheet.create({
   navLinks: { gap: 8 },
   disclaimer: {
     color: colors.muted,
-    fontSize: 10,
+    fontSize: 14,
     textAlign: 'center',
     marginBottom: 8,
   },

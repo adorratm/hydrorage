@@ -139,6 +139,9 @@ function AuthProviderWithGoogle({ children }: { children: React.ReactNode }) {
       webClientId,
       clientId: Platform.OS === 'web' ? webClientId : undefined,
       selectAccount: true,
+      // Kütüphane kodu kendisi de değiştirir. Aşağıdaki exchange ile yarışınca
+      // Google ikinci isteği "invalid grant" diye reddeder.
+      shouldAutoExchangeCode: false,
       ...(Platform.OS === 'web'
         ? {
             redirectUri:

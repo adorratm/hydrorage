@@ -64,17 +64,17 @@ const styles = StyleSheet.create({
   },
   kicker: {
     color: colors.error,
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     letterSpacing: 1,
   },
   grade: {
     color: colors.onSurface,
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '700',
   },
-  quote: { color: colors.onSurfaceVariant, fontSize: 13, lineHeight: 18 },
+  quote: { color: colors.onSurfaceVariant, fontSize: 16, lineHeight: 18 },
   row: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  stat: { color: colors.primaryContainer, fontWeight: '800', fontSize: 12 },
-  hint: { color: colors.muted, fontSize: 11, marginTop: 4 },
+  stat: { color: colors.primaryContainer, fontWeight: '700', fontSize: 16 },
+  hint: { color: colors.muted, fontSize: 14, marginTop: 4 },
 });

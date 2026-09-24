@@ -128,8 +128,8 @@ export default function RutinlerScreen() {
                     : log.status === 'MISSED'
                       ? colors.error
                       : colors.warning,
-                fontWeight: '800',
-                fontSize: 10,
+                fontWeight: '700',
+                fontSize: 14,
               }}
             >
               {log.status === 'COMPLETED'
@@ -256,11 +256,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: { color: colors.onSurface, fontSize: 16, fontWeight: '800' },
-  metricLabel: { color: colors.onSurfaceVariant, fontSize: 11, fontWeight: '700' },
-  violation: { color: colors.error, fontWeight: '800', fontSize: 12 },
-  body: { color: colors.onSurfaceVariant, fontSize: 13, marginTop: 6 },
-  time: { color: colors.primaryContainer, fontWeight: '700', fontSize: 12 },
+  title: { color: colors.onSurface, fontSize: 16, fontWeight: '700' },
+  metricLabel: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
+  violation: { color: colors.error, fontWeight: '700', fontSize: 16 },
+  body: { color: colors.onSurfaceVariant, fontSize: 16, marginTop: 6 },
+  time: { color: colors.primaryContainer, fontWeight: '700', fontSize: 16 },
   itemTitle: { color: colors.onSurface, fontWeight: '700', marginTop: 6 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 10 },
   input: {
@@ -279,5 +279,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceContainerHighest,
   },
   intensityActive: { backgroundColor: colors.accent },
-  intensityText: { color: colors.onSurfaceVariant, fontSize: 11, fontWeight: '700' },
+  intensityText: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
 });

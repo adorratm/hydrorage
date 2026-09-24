@@ -54,10 +54,18 @@ async function getAccess() {
   return storageGet(ACCESS_KEY);
 }
 
+async function request(url: string, options: RequestInit) {
+  try {
+    return await fetch(url, options);
+  } catch {
+    throw new Error('Sunucuya bağlanılamadı');
+  }
+}
+
 async function refreshAccess(): Promise<string | null> {
   const refreshToken = await storageGet(REFRESH_KEY);
   if (!refreshToken) return null;
-  const res = await fetch(`${getApiBaseUrl()}/auth/refresh`, {
+  const res = await request(`${getApiBaseUrl()}/auth/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
@@ -83,11 +91,12 @@ export async function api<T>(
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'X-Locale': getLocale(),
+    'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
     ...(options.headers as Record<string, string>),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${getApiBaseUrl()}${path}`, {
+  const res = await request(`${getApiBaseUrl()}${path}`, {
     ...options,
     headers,
   });

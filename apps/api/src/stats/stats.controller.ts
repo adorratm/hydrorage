@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Headers, UseGuards } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager, MoreThanOrEqual } from 'typeorm';
 import {
@@ -21,16 +21,32 @@ export class StatsController {
   async weekly(
     @CurrentUser() user: { userId: string },
     @Locale() locale: AppLocale,
+    @Headers('x-timezone') timeZoneHeader?: string,
   ) {
     const me = await this.em.findOneByOrFail(User, { id: user.userId });
-    const start = startOfWeek(new Date());
+    const timeZone = safeTimeZone(timeZoneHeader);
+    const todayKey = zonedDayKey(new Date(), timeZone);
+    const weekStartKey = addDaysKey(
+      todayKey,
+      -((weekdayMonday(todayKey) + 7) % 7),
+    );
+    const rangeStart = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
     const intakes = await this.em.find(Intake, {
-      where: { userId: user.userId, createdAt: MoreThanOrEqual(start) },
+      where: { userId: user.userId, createdAt: MoreThanOrEqual(rangeStart) },
     });
     const threats = await this.em.find(ThreatEvent, {
-      where: { userId: user.userId, createdAt: MoreThanOrEqual(start) },
+      where: { userId: user.userId, createdAt: MoreThanOrEqual(rangeStart) },
       relations: { character: true, template: true },
     });
+    const weekKeys = new Set(
+      Array.from({ length: 7 }, (_, i) => addDaysKey(weekStartKey, i)),
+    );
+    const weekIntakes = intakes.filter((x) =>
+      weekKeys.has(zonedDayKey(x.createdAt, timeZone)),
+    );
+    const weekThreats = threats.filter((x) =>
+      weekKeys.has(zonedDayKey(x.createdAt, timeZone)),
+    );
 
     const days = [
       t(locale, 'web.day.mon'),
@@ -42,12 +58,9 @@ export class StatsController {
       t(locale, 'web.day.sun'),
     ];
     const daily = days.map((label, i) => {
-      const dayStart = new Date(start);
-      dayStart.setDate(start.getDate() + i);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayStart.getDate() + 1);
-      const dayIntakes = intakes.filter(
-        (x) => x.createdAt >= dayStart && x.createdAt < dayEnd,
+      const key = addDaysKey(weekStartKey, i);
+      const dayIntakes = weekIntakes.filter(
+        (x) => zonedDayKey(x.createdAt, timeZone) === key,
       );
       const liters =
         dayIntakes.reduce((s, x) => s + Math.max(0, x.netMl), 0) / 1000;
@@ -68,16 +81,20 @@ export class StatsController {
       };
     });
 
-    const scoldCount = threats.length;
-    const missedGlasses = threats.filter(
-      (t) => t.status === ThreatStatus.MISSED,
+    const scoldCount = weekThreats.filter(
+      (th) =>
+        th.status === ThreatStatus.PLAYED || th.status === ThreatStatus.MISSED,
+    ).length;
+    const missedGlasses = weekThreats.filter(
+      (th) => th.status === ThreatStatus.MISSED,
     ).length;
     const totalLiters =
       Math.round(
-        (intakes.reduce((s, x) => s + Math.max(0, x.netMl), 0) / 1000) * 10,
+        (weekIntakes.reduce((s, x) => s + Math.max(0, x.netMl), 0) / 1000) *
+          10,
       ) / 10;
 
-    const caffeineMl = intakes
+    const caffeineMl = weekIntakes
       .filter((i) =>
         [
           DrinkType.COFFEE,
@@ -88,7 +105,7 @@ export class StatsController {
         ].includes(i.type),
       )
       .reduce((s, i) => s + i.amountMl, 0);
-    const waterMl = intakes
+    const waterMl = weekIntakes
       .filter((i) =>
         [
           DrinkType.WATER,
@@ -101,13 +118,16 @@ export class StatsController {
     const ratio =
       caffeineMl === 0 ? waterMl : Math.round((waterMl / caffeineMl) * 10) / 10;
 
-    const completed = threats.filter(
-      (t) => t.status === ThreatStatus.COMPLETED,
+    const settled = weekThreats.filter(
+      (th) => th.status !== ThreatStatus.PENDING,
+    );
+    const completed = settled.filter(
+      (th) => th.status === ThreatStatus.COMPLETED,
     ).length;
     const savedRate =
-      threats.length === 0
+      settled.length === 0
         ? 100
-        : Math.round((completed / threats.length) * 100);
+        : Math.round((completed / settled.length) * 100);
 
     const kidneyIndex = Math.max(
       20,
@@ -129,7 +149,9 @@ export class StatsController {
       string,
       { text: string; count: number; characterName: string; maxDb: number }
     >();
-    for (const th of threats) {
+    for (const th of weekThreats.filter(
+      (item) => item.status !== ThreatStatus.PENDING,
+    )) {
       const key = th.templateId ?? th.message.slice(0, 40);
       const prev = topTemplates.get(key);
       if (prev) prev.count += 1;
@@ -171,7 +193,7 @@ export class StatsController {
             ? t(locale, 'api.stats.risk.mid')
             : t(locale, 'api.stats.risk.low'),
       caffeineWaterRatio: `1:${ratio || 0}`,
-      savedGlasses: `${completed}/${threats.length || 1}`,
+      savedGlasses: `${completed}/${settled.length || 0}`,
       savedRate,
       shareQuote: fillTemplate(t(locale, 'api.stats.share'), {
         count: scoldCount,
@@ -181,10 +203,34 @@ export class StatsController {
   }
 }
 
-function startOfWeek(d: Date) {
-  const x = new Date(d);
-  const day = (x.getDay() + 6) % 7;
-  x.setDate(x.getDate() - day);
-  x.setHours(0, 0, 0, 0);
-  return x;
+function safeTimeZone(raw?: string) {
+  const zone = (raw ?? '').trim() || 'Europe/Istanbul';
+  try {
+    Intl.DateTimeFormat('en-CA', { timeZone: zone }).format(new Date());
+    return zone;
+  } catch {
+    return 'Europe/Istanbul';
+  }
+}
+
+function zonedDayKey(date: Date, timeZone: string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function addDaysKey(key: string, days: number) {
+  const [y, m, d] = key.split('-').map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d));
+  utc.setUTCDate(utc.getUTCDate() + days);
+  return utc.toISOString().slice(0, 10);
+}
+
+function weekdayMonday(key: string) {
+  const [y, m, d] = key.split('-').map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d));
+  return (utc.getUTCDay() + 6) % 7;
 }

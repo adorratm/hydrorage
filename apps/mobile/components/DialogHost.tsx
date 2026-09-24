@@ -36,7 +36,9 @@ export function DialogHost() {
   const close = () => dismissDialog();
 
   const onCancel = () => {
-    payload?.onCancel?.();
+    if (payload && (payload.kind === 'confirm' || payload.kind === 'prompt')) {
+      payload.onCancel?.();
+    }
     close();
   };
 
@@ -53,7 +55,9 @@ export function DialogHost() {
   };
 
   const onAlertOk = () => {
-    payload?.onClose?.();
+    if (payload?.kind === 'alert') {
+      payload.onClose?.();
+    }
     close();
   };
 
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(5, 7, 14, 0.72)',
   },
   sheet: {
@@ -179,10 +183,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(189, 147, 249, 0.28)',
     gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.45,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 16 },
+    boxShadow: '0px 16px 28px rgba(0, 0, 0, 0.45)',
     elevation: 12,
   },
   sheetCenter: {
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.onSurface,
     letterSpacing: -0.3,
   },
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   btnGhostText: {
     color: colors.onSurfaceVariant,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: fonts.bold,
   },
   btnPrimary: {
@@ -261,8 +262,8 @@ const styles = StyleSheet.create({
   },
   btnPrimaryText: {
     color: colors.onPrimary,
-    fontWeight: '800',
-    fontSize: 15,
+    fontWeight: '700',
+    fontSize: 16,
     fontFamily: fonts.bold,
   },
   btnDanger: {
@@ -270,8 +271,8 @@ const styles = StyleSheet.create({
   },
   btnDangerText: {
     color: '#1a0a0a',
-    fontWeight: '800',
-    fontSize: 15,
+    fontWeight: '700',
+    fontSize: 16,
     fontFamily: fonts.bold,
   },
 });

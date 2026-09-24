@@ -104,6 +104,9 @@ export const CHARACTER_SLUGS = {
   TOXIC_EX: 'zehirli-ex',
   ER_DOCTOR: 'acil-doktor',
   NIGHT_GUARD: 'gece-bekcisi',
+  SULTRY: 'seksi-ses',
+  GOTHIC_LADY: 'gotik-leydi',
+  JAPANESE: 'japon-ses',
 } as const;
 
 export type CharacterMeta = {
@@ -166,8 +169,8 @@ export const CHARACTER_META: Record<
   [CHARACTER_SLUGS.CORPORATE]: {
     tr: {
       name: 'Toksik Kurumsal Yönetici',
-      description: 'Sprint deadline ve Q3 hedefleriyle su içtirir.',
-      badge: 'KPI',
+      description: 'Sprint son tarihi ve çeyrek hedefleriyle su içtirir.',
+      badge: 'HEDEF',
       dosageLabel: 'Kurumsal',
     },
     en: {
@@ -236,7 +239,7 @@ export const CHARACTER_META: Record<
   [CHARACTER_SLUGS.ER_DOCTOR]: {
     tr: {
       name: 'Acil Doktor',
-      description: 'Klinik ton: dehidrasyon riski, oral sıvı emri.',
+      description: 'Klinik ton: susuzluk riski, ağızdan sıvı emri.',
       badge: 'ACİL',
       dosageLabel: 'Klinik',
     },
@@ -259,6 +262,48 @@ export const CHARACTER_META: Record<
       description: '03:00 watch: you owe water — get up and sip.',
       badge: 'NIGHT',
       dosageLabel: 'Watch',
+    },
+  },
+  [CHARACTER_SLUGS.SULTRY]: {
+    tr: {
+      name: 'Seksi Fısıltı',
+      description: 'Yavaş, alçak ve yakın. Su içmeni fısıldayarak ister.',
+      badge: 'FİSİLTI',
+      dosageLabel: 'Yakın',
+    },
+    en: {
+      name: 'Sultry Whisper',
+      description: 'Slow, low, and close. She asks you to drink in a whisper.',
+      badge: 'WHISPER',
+      dosageLabel: 'Close',
+    },
+  },
+  [CHARACTER_SLUGS.GOTHIC_LADY]: {
+    tr: {
+      name: 'Gotik Leydi',
+      description: 'Karanlık, ağır ve tok bir kadın sesi. Gece yarısı su borcunu sayar.',
+      badge: 'GOTİK',
+      dosageLabel: 'Gece',
+    },
+    en: {
+      name: 'Gothic Lady',
+      description: 'A dark, heavy female voice. She counts your water debt at midnight.',
+      badge: 'GOTHIC',
+      dosageLabel: 'Night',
+    },
+  },
+  [CHARACTER_SLUGS.JAPANESE]: {
+    tr: {
+      name: 'Japon Kadın',
+      description: 'Sakin Japon aksanı. Türkçe ve İngilizce aynı sesle su hatırlatır.',
+      badge: 'JAPON',
+      dosageLabel: 'Sakin',
+    },
+    en: {
+      name: 'Japanese Woman',
+      description: 'Japanese accent. The same voice speaks Turkish and English.',
+      badge: 'JAPAN',
+      dosageLabel: 'Calm',
     },
   },
 };
@@ -287,7 +332,7 @@ export const CHARACTER_SAMPLE_LINES: Record<string, string> = {
   [CHARACTER_SLUGS.ANGRY_MOM]:
     'Ben sana demedim mi iç diye? Böbreklerin taş dökecek, utan biraz!',
   [CHARACTER_SLUGS.CORPORATE]:
-    'Q3 hidrasyon KPI’ın kırmızı. Action item: 300 ml su, deadline şimdi.',
+    'Bu çeyrek hidrasyon hedefin kırmızı. Yapılacak iş: 300 ml su, süre şimdi.',
   [CHARACTER_SLUGS.DRACULA]:
     'Kanım değil suyun eksik… O bardağı boş bırakırsan gece seni bulurum.',
   [CHARACTER_SLUGS.SERGEANT]:
@@ -297,9 +342,15 @@ export const CHARACTER_SAMPLE_LINES: Record<string, string> = {
   [CHARACTER_SLUGS.TOXIC_EX]:
     'Hâlâ aynı tembelsin… Su içmeyi bile başaramıyorsun, şaşırdım mı? Hayır.',
   [CHARACTER_SLUGS.ER_DOCTOR]:
-    'Klinik not: dehidre. Tedavi oral su, 500 ml, derhal.',
+    'Klinik not: susuz. Tedavi ağızdan su, 500 ml, derhal.',
   [CHARACTER_SLUGS.NIGHT_GUARD]:
     'Saat 03:00. Nöbet: su borcun var. Kalk, yudumla, tekrar uyu.',
+  [CHARACTER_SLUGS.SULTRY]:
+    'Yaklaş. Bardağı dudağına götür, yavaş yudumla.',
+  [CHARACTER_SLUGS.GOTHIC_LADY]:
+    'Mum söndü. Karanlıkta su borcun duruyor. Bir yudum, yoksa gece uzar.',
+  [CHARACTER_SLUGS.JAPANESE]:
+    'Lütfen su iç. Bardak boş kalmasın. やめてください。',
 };
 
 /** Güvenli mod örnek satırları (argo/küfür yok) */
@@ -311,7 +362,7 @@ export const CHARACTER_SAFE_SAMPLE_LINES: Record<string, string> = {
   [CHARACTER_SLUGS.ANGRY_MOM]:
     'Sana söyledim: su iç. Böbreklerin için lütfen bir bardak.',
   [CHARACTER_SLUGS.CORPORATE]:
-    'Hidrasyon KPI’ın sarıya döndü. Aksiyon: 300 ml su, deadline şimdi.',
+    'Hidrasyon hedefin sarıya döndü. Yapılacak: 300 ml su, süre şimdi.',
   [CHARACTER_SLUGS.DRACULA]:
     'Kan değil suyun eksik. Bir yudum al; gece daha rahat geçer.',
   [CHARACTER_SLUGS.SERGEANT]:
@@ -321,9 +372,15 @@ export const CHARACTER_SAFE_SAMPLE_LINES: Record<string, string> = {
   [CHARACTER_SLUGS.TOXIC_EX]:
     'Küçük hatırlatma: su içmeyi erteleme. Bir bardak yeter.',
   [CHARACTER_SLUGS.ER_DOCTOR]:
-    'Klinik not: hafif dehidrasyon riski. Tedavi: oral su, 500 ml.',
+    'Klinik not: hafif susuzluk riski. Tedavi: ağızdan su, 500 ml.',
   [CHARACTER_SLUGS.NIGHT_GUARD]:
     'Saat 03:00. Su borcun var. Kalk, bir yudum al, tekrar uyu.',
+  [CHARACTER_SLUGS.SULTRY]:
+    'Bir bardak su. Yavaş iç, acele etme.',
+  [CHARACTER_SLUGS.GOTHIC_LADY]:
+    'Gece su borcunu unutmaz. Bir yudum al.',
+  [CHARACTER_SLUGS.JAPANESE]:
+    'Lütfen bir bardak su iç. Şimdi.',
 };
 
 export const CHARACTER_SAMPLE_LINES_EN: Record<string, string> = {
@@ -347,6 +404,12 @@ export const CHARACTER_SAMPLE_LINES_EN: Record<string, string> = {
     'Clinical note: dehydrated. Treatment: oral water, 500 ml, immediately.',
   [CHARACTER_SLUGS.NIGHT_GUARD]:
     '03:00. Night watch: you owe water. Get up, sip, sleep again.',
+  [CHARACTER_SLUGS.SULTRY]:
+    'Come closer. Put the glass to your lips and sip slowly.',
+  [CHARACTER_SLUGS.GOTHIC_LADY]:
+    'The candle went out. Your water debt waits in the dark. One sip, or the night stretches.',
+  [CHARACTER_SLUGS.JAPANESE]:
+    'Please drink water. Do not leave the glass empty. やめてください。',
 };
 
 export const CHARACTER_SAFE_SAMPLE_LINES_EN: Record<string, string> = {
@@ -370,7 +433,40 @@ export const CHARACTER_SAFE_SAMPLE_LINES_EN: Record<string, string> = {
     'Clinical note: mild dehydration risk. Treatment: oral water, 500 ml.',
   [CHARACTER_SLUGS.NIGHT_GUARD]:
     '03:00. You owe water. Get up, take a sip, sleep again.',
+  [CHARACTER_SLUGS.SULTRY]:
+    'A glass of water. Drink it slowly.',
+  [CHARACTER_SLUGS.GOTHIC_LADY]:
+    'The night does not forget a water debt. Take one sip.',
+  [CHARACTER_SLUGS.JAPANESE]:
+    'Please drink a glass of water. Now.',
 };
+
+export const JAPANESE_TAIL = 'やめてください。';
+
+/** Ekranda ve seste durmasın. Kayıt bu sözü kendi söylüyor. */
+export function stripYametePhrase(text: string): string {
+  return text
+    .replace(/やめてええ、くださいいい、やめてください/g, '')
+    .replace(/やめてええ、くださいいい/g, '')
+    .replace(/やめてください[。.]?/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.!?])/g, '$1')
+    .replace(/^[,.\s!?]+|[,.\s!?]+$/g, '')
+    .trim();
+}
+
+/** Elle yazılmış şablonda Japon sesi seçiliyse ara sıra cümle sonuna eklenir. */
+export function withRandomJapaneseTail(
+  text: string,
+  characterSlug: string | null | undefined,
+  manual: boolean,
+): string {
+  if (!manual || characterSlug !== CHARACTER_SLUGS.JAPANESE) return text;
+  if (text.includes('やめて')) return text;
+  if (Math.random() >= 0.5) return text;
+  const base = text.replace(/[\s.!?]+$/u, '');
+  return `${base}. ${JAPANESE_TAIL}`;
+}
 
 export function sampleLineForCharacter(
   slug: string | null | undefined,

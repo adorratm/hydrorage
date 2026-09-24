@@ -1,12 +1,11 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
-import { fillTemplate, t, type AppLocale } from '@hydrorage/shared';
+import { t, type AppLocale } from '@hydrorage/shared';
 import {
   Character,
   Intake,
@@ -46,6 +45,11 @@ export class UsersService {
       dailyGoalMl: saved.dailyGoalMl,
       streakDays: saved.streakDays,
     };
+  }
+
+  async markOpened(userId: string) {
+    await this.em.update(User, { id: userId }, { lastAppOpenedAt: new Date() });
+    return { ok: true };
   }
 
   async setPushToken(userId: string, token: string | null) {
@@ -109,14 +113,6 @@ export class UsersService {
     }
     if (!user) {
       throw new NotFoundException(t(locale, 'api.user.notFound'));
-    }
-    if (user.streakDays < character.unlockStreakDays) {
-      throw new ForbiddenException(
-        fillTemplate(t(locale, 'api.char.unlock'), {
-          need: character.unlockStreakDays,
-          have: user.streakDays,
-        }),
-      );
     }
   }
 }

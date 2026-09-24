@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
   brand: { alignItems: 'center', marginBottom: 28, gap: 8 },
   title: {
     color: colors.primaryContainer,
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
   },
   sub: { color: colors.onSurfaceVariant, textAlign: 'center', lineHeight: 20 },
   authBtn: { width: '100%', height: 48 },
@@ -140,12 +140,12 @@ const styles = StyleSheet.create({
   appleBtn: { width: '100%', height: 48 },
   hint: {
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 16,
     textAlign: 'center',
   },
   disclaimer: {
     color: colors.muted,
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   legalLink: {
     color: colors.primaryContainer,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
     textDecorationLine: 'underline',
   },

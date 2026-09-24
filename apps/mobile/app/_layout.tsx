@@ -12,7 +12,7 @@ import {
 } from '@expo-google-fonts/ubuntu';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, AppState, View } from 'react-native';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { colors } from '@/constants/theme';
 import { patchTextToUbuntu } from '@/lib/ubuntu-text';
@@ -21,10 +21,11 @@ import {
   registerExpoPushToken,
 } from '@/lib/notifications';
 import { api } from '@/lib/api';
-import { loadLocale } from '@/lib/i18n';
+import { getLocale, loadLocale } from '@/lib/i18n';
 import { AppQueryProvider } from '@/lib/query-provider';
 import { DialogHost } from '@/components/DialogHost';
 import { applyUpdateIfAvailable } from '@/lib/updates';
+import { startAppOpenAds } from '@/lib/ads';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -95,11 +96,32 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   ]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !bootstrapped || settings?.onboardingCompleted !== true) {
+      return;
+    }
+    return startAppOpenAds();
+  }, [user, bootstrapped, settings?.onboardingCompleted]);
+
+  useEffect(() => {
+    if (!user || !bootstrapped) return;
     const stop = startNotificationSpeechListeners();
     void registerExpoPushToken();
-    return stop;
-  }, [user]);
+    const ping = () => {
+      void api('/users/me/seen', { method: 'POST', body: '{}' }).catch(() => {});
+      void api('/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({ locale: getLocale() }),
+      }).catch(() => {});
+    };
+    ping();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') ping();
+    });
+    return () => {
+      stop();
+      sub.remove();
+    };
+  }, [user, bootstrapped]);
 
   useEffect(() => {
     const handle = (url: string) => {

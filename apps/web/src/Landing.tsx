@@ -211,12 +211,37 @@ export function Landing() {
   ];
 
   return (
-    <div className="page" ref={rootRef}>
+    <div className="page" id="top" ref={rootRef}>
       {error ? (
         <div className="toast-error" role="status">
           {error}
         </div>
       ) : null}
+
+      <nav className="site-nav" aria-label={locale === 'en' ? 'Main' : 'Ana'}>
+        <button
+          type="button"
+          className="brand-mark brand-mark--btn"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          {brand}
+        </button>
+        <div className="nav-links">
+          <a className="nav-link" href={content.nav.linkHref}>
+            {content.nav.linkLabel}
+          </a>
+          <a className="nav-link" href="#karakterler">
+            {t('web.nav.characters')}
+          </a>
+          <a className="nav-link" href="#sss">
+            {t('web.nav.faq')}
+          </a>
+          <Link className="nav-link" to="/blog">
+            {t('web.nav.blog')}
+          </Link>
+          <LocaleToggle />
+        </div>
+      </nav>
 
       <header className="hero">
         <div className="hero__mesh" aria-hidden />
@@ -227,28 +252,7 @@ export function Landing() {
         </div>
         <FallingDrops />
 
-        <nav className="hero__nav" aria-label={locale === 'en' ? 'Main' : 'Ana'}>
-          <a className="brand-mark" href="#top">
-            {brand}
-          </a>
-          <div className="nav-links">
-            <a className="nav-link" href={content.nav.linkHref}>
-              {content.nav.linkLabel}
-            </a>
-            <a className="nav-link" href="#karakterler">
-              {t('web.nav.characters')}
-            </a>
-            <a className="nav-link" href="#sss">
-              {t('web.nav.faq')}
-            </a>
-            <Link className="nav-link" to="/blog">
-              {t('web.nav.blog')}
-            </Link>
-            <LocaleToggle />
-          </div>
-        </nav>
-
-        <div className="hero__stage" id="top">
+        <div className="hero__stage">
           <div className="hero__content">
             <h1 className="hero__brand">
               <span className="hero__brand-line">{brandParts.top}</span>

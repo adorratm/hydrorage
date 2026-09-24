@@ -6,7 +6,7 @@ import {
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import type { AppLocale } from '@hydrorage/shared';
-import { localizeCharacter } from '@hydrorage/shared';
+import { localizeCharacter, withRandomJapaneseTail } from '@hydrorage/shared';
 import { Character, ThreatTemplate, UserSettings } from '@/database/entities';
 import { ProfanityLevel } from '@/database/enums';
 import { t, threatFallback } from '@/common/copy';
@@ -170,6 +170,7 @@ export class TemplatesService {
         text: threatFallback(plus18, locale, characterSlug),
         templateId: null as string | null,
         characterId: characterId ?? null,
+        characterSlug,
       };
     }
 
@@ -178,16 +179,17 @@ export class TemplatesService {
     await this.em.save(picked);
 
     const slug = picked.character?.slug ?? characterSlug;
-    // System templates are TR-only in DB — localize via shared samples for EN
-    const text =
+    const raw =
       locale === 'en' && picked.isSystem
         ? threatFallback(plus18, locale, slug)
         : picked.text;
+    const text = withRandomJapaneseTail(raw, slug, !picked.isSystem);
 
     return {
       text,
       templateId: picked.id,
       characterId: picked.characterId ?? characterId ?? null,
+      characterSlug: slug,
     };
   }
 

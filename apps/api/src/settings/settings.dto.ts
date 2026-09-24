@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -85,4 +86,8 @@ export class UpdateSettingsDto {
   @Min(0)
   @Max(100)
   whisperVolume?: number;
+
+  @IsOptional()
+  @IsIn(['tr', 'en'])
+  locale?: 'tr' | 'en';
 }

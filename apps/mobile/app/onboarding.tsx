@@ -206,12 +206,12 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
   content: { padding: spacing.margin, gap: 16, paddingBottom: 40 },
-  progress: { color: colors.muted, fontWeight: '700', fontSize: 12 },
+  progress: { color: colors.muted, fontWeight: '700', fontSize: 16 },
   block: { gap: 12 },
   title: {
     color: colors.primaryContainer,
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
   },
   body: { color: colors.onSurfaceVariant, lineHeight: 20 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(98,114,164,0.25)',
   },
   rowOn: { backgroundColor: 'rgba(189,147,249,0.12)' },
-  rowText: { color: colors.onSurface, fontWeight: '600', flex: 1 },
+  rowText: { color: colors.onSurface, fontWeight: '700', flex: 1 },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:26.9.0-alpine AS deps
+FROM node:26.10.0-alpine AS deps
 WORKDIR /app
 RUN npm install -g corepack \
   && corepack enable \
@@ -9,7 +9,7 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 RUN yarn workspaces focus @hydrorage/web
 
-FROM node:26.9.0-alpine AS build
+FROM node:26.10.0-alpine AS build
 WORKDIR /app
 RUN npm install -g corepack \
   && corepack enable \

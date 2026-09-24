@@ -41,7 +41,6 @@ button {
 
 .page {
   min-height: 100vh;
-  overflow-x: clip;
 }
 
 .page--loading {
@@ -376,17 +375,34 @@ button {
   animation: watermark-drift 12s ease-in-out infinite alternate;
 }
 
-.hero__nav {
-  position: relative;
-  z-index: 4;
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 1.1rem 0;
-  max-width: 1180px;
-  width: 100%;
-  margin: 0 auto;
+  padding: 0.85rem clamp(1rem, 4vw, 3rem);
+  background: rgba(6, 8, 14, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand-mark--btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--cyan);
+}
+
+.section,
+.final {
+  scroll-margin-top: 72px;
 }
 
 .brand-mark {

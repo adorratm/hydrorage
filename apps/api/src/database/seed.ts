@@ -58,7 +58,7 @@ async function main() {
       maxDb: 94,
       dosageLabel: 'Ağır',
       recordingCount: 36,
-      unlockStreakDays: 3,
+      unlockStreakDays: 0,
     },
     {
       slug: 'sinirli-balkan-annesi',
@@ -68,17 +68,17 @@ async function main() {
       maxDb: 91,
       dosageLabel: 'Duygusal',
       recordingCount: 32,
-      unlockStreakDays: 5,
+      unlockStreakDays: 0,
     },
     {
       slug: 'toksik-kurumsal-yonetici',
       name: 'Toksik Kurumsal Yönetici',
-      description: 'Sprint deadline ve Q3 hedefleriyle su içtirir.',
-      badge: 'KPI',
+      description: 'Sprint son tarihi ve çeyrek hedefleriyle su içtirir.',
+      badge: 'HEDEF',
       maxDb: 88,
       dosageLabel: 'Kurumsal',
       recordingCount: 28,
-      unlockStreakDays: 7,
+      unlockStreakDays: 0,
     },
     {
       slug: 'dracula',
@@ -88,7 +88,7 @@ async function main() {
       maxDb: 99,
       dosageLabel: 'Vampirik',
       recordingCount: 30,
-      unlockStreakDays: 10,
+      unlockStreakDays: 0,
     },
     {
       slug: 'cavus-komutan',
@@ -98,7 +98,7 @@ async function main() {
       maxDb: 100,
       dosageLabel: 'Cezaevi',
       recordingCount: 26,
-      unlockStreakDays: 14,
+      unlockStreakDays: 0,
     },
     {
       slug: 'taksi-soforu',
@@ -108,7 +108,7 @@ async function main() {
       maxDb: 96,
       dosageLabel: 'Korna',
       recordingCount: 24,
-      unlockStreakDays: 7,
+      unlockStreakDays: 0,
     },
     {
       slug: 'zehirli-ex',
@@ -118,17 +118,17 @@ async function main() {
       maxDb: 93,
       dosageLabel: 'Toksik',
       recordingCount: 28,
-      unlockStreakDays: 21,
+      unlockStreakDays: 0,
     },
     {
       slug: 'acil-doktor',
       name: 'Acil Servis Doktoru',
-      description: 'Klinik gerçeklik: taş, dehidratasyon, yoğun bakım tehdidi.',
+      description: 'Klinik gerçeklik: taş, susuzluk, yoğun bakım tehdidi.',
       badge: 'KLİNİK',
       maxDb: 90,
-      dosageLabel: 'IV Serum',
+      dosageLabel: 'Serum',
       recordingCount: 22,
-      unlockStreakDays: 14,
+      unlockStreakDays: 0,
     },
     {
       slug: 'gece-bekcisi',
@@ -138,7 +138,37 @@ async function main() {
       maxDb: 92,
       dosageLabel: 'Nöbet',
       recordingCount: 20,
-      unlockStreakDays: 30,
+      unlockStreakDays: 0,
+    },
+    {
+      slug: 'seksi-ses',
+      name: 'Seksi Fısıltı',
+      description: 'Yavaş, alçak ve yakın. Su içmeni fısıldayarak ister.',
+      badge: 'FİSİLTI',
+      maxDb: 86,
+      dosageLabel: 'Yakın',
+      recordingCount: 18,
+      unlockStreakDays: 0,
+    },
+    {
+      slug: 'gotik-leydi',
+      name: 'Gotik Leydi',
+      description: 'Karanlık, ağır ve tok bir kadın sesi. Gece yarısı su borcunu sayar.',
+      badge: 'GOTİK',
+      maxDb: 90,
+      dosageLabel: 'Gece',
+      recordingCount: 18,
+      unlockStreakDays: 0,
+    },
+    {
+      slug: 'japon-ses',
+      name: 'Japon Kadın',
+      description: 'Sakin Japon aksanı. Türkçe ve İngilizce aynı sesle su hatırlatır.',
+      badge: 'JAPON',
+      maxDb: 84,
+      dosageLabel: 'Sakin',
+      recordingCount: 18,
+      unlockStreakDays: 0,
     },
   ];
 
@@ -165,6 +195,9 @@ async function main() {
   const ex = await bySlug('zehirli-ex');
   const doc = await bySlug('acil-doktor');
   const night = await bySlug('gece-bekcisi');
+  const sultry = await bySlug('seksi-ses');
+  const gothic = await bySlug('gotik-leydi');
+  const japon = await bySlug('japon-ses');
 
   await em.delete(ThreatTemplate, { isSystem: true });
 
@@ -207,12 +240,12 @@ async function main() {
       characterId: mom.id,
     },
     {
-      text: 'Hidrasyon KPI’ın sarıya döndü. Aksiyon: 300 ml su, deadline şimdi.',
+      text: 'Hidrasyon hedefin sarıya döndü. Yapılacak: 300 ml su, süre şimdi.',
       profanityLevel: S,
       characterId: corp.id,
     },
     {
-      text: 'Klinik not: hafif dehidrasyon riski. Tedavi: oral su, 400 ml.',
+      text: 'Klinik not: hafif susuzluk riski. Tedavi: ağızdan su, 400 ml.',
       profanityLevel: S,
       characterId: doc.id,
     },
@@ -279,7 +312,7 @@ async function main() {
       characterId: bro.id,
     },
     {
-      text: 'Amına kodumun dehydratı, idrarın turuncu mu olmuş? Su iç lan, taş mı toplayacaksın böbreğinde?',
+      text: 'Amına kodumun susuzu, idrarın turuncu mu olmuş? Su iç lan, taş mı toplayacaksın böbreğinde?',
       profanityLevel: U,
       characterId: bro.id,
     },
@@ -321,22 +354,22 @@ async function main() {
       characterId: coach.id,
     },
     {
-      text: 'Koçum dinle: protein shake içip suyu es geçmek = götünle spor yapmak. 500 ml dik şimdi!',
+      text: 'Koçum dinle: protein içeceği içip suyu es geçmek = götünle spor yapmak. 500 ml dik şimdi!',
       profanityLevel: MIL,
       characterId: coach.id,
     },
     {
-      text: 'Pump istiyorsun ama hücrelerin kurak amk. Su yoksa kas yok, hareket et {{name}}!',
+      text: 'Kas şişmesi istiyorsun ama hücrelerin kurak amk. Su yoksa kas yok, hareket et {{name}}!',
       profanityLevel: N,
       characterId: coach.id,
     },
     {
-      text: 'Rest day diye susuzluk mı yaşıyorsun lan? Rest day de su içilir, 400 ml şimdi!',
+      text: 'Dinlenme günü diye susuzluk mu yaşıyorsun lan? O gün de su içilir, 400 ml şimdi!',
       profanityLevel: MIL,
       characterId: coach.id,
     },
     {
-      text: 'Formun çöpe gidecek {{name}}. Dehidratasyon = performans sıfır. Bardağı kırılana kadar iç!',
+      text: 'Formun çöpe gidecek {{name}}. Susuzluk = performans sıfır. Bardağı kırılana kadar iç!',
       profanityLevel: N,
       characterId: coach.id,
     },
@@ -380,32 +413,32 @@ async function main() {
 
     // —— Kurumsal ——
     {
-      text: '{{name}}, Q3 hidrasyon KPI’ın kırmızı. Stakeholder su bekliyor — 300 ml sync şimdi.',
+      text: '{{name}}, bu çeyrek hidrasyon hedefin kırmızı. Herkes su bekliyor — 300 ml, hemen.',
       profanityLevel: M,
       characterId: corp.id,
     },
     {
-      text: 'Sprint review’da susuz görünmek professional değil. Action item: su iç. Deadline: şimdi.',
+      text: 'Sprint değerlendirmesinde susuz görünmek profesyonel değil. Yapılacak iş: su iç. Süre: şimdi.',
       profanityLevel: M,
       characterId: corp.id,
     },
     {
-      text: 'Meeting’de kahve yetmez. Water bottle ownership sende. +{{debtMl}} ml overdue.',
+      text: 'Toplantıda kahve yetmez. Su şişesinin sorumluluğu sende. +{{debtMl}} ml gecikmiş.',
       profanityLevel: N,
       characterId: corp.id,
     },
     {
-      text: 'Performance review notu: dehidre çalışan = düşük output. Align ol, su iç {{name}}.',
+      text: 'Performans notu: susuz çalışan düşük verim demek. Hizalan, su iç {{name}}.',
       profanityLevel: M,
       characterId: corp.id,
     },
     {
-      text: 'Slack’te idle’sın, bardak boş. Bu blocker’ı resolve et: 250 ml ASAP.',
+      text: 'Sohbette boştasın, bardak boş. Bu engeli kaldır: 250 ml, hemen.',
       profanityLevel: N,
       characterId: corp.id,
     },
     {
-      text: 'Offsite planı: sen susuz kalacaksan budget cut. İç lan, corporate politikası bu.',
+      text: 'Dış etkinlik planı: susuz kalırsan bütçe kesilir. İç, şirket kuralı bu.',
       profanityLevel: U,
       characterId: corp.id,
     },
@@ -530,7 +563,7 @@ async function main() {
 
     // —— Doktor ——
     {
-      text: 'Klinik not: hasta {{name}} dehidre. Tedavi: oral su, 500 ml, derhal.',
+      text: 'Klinik not: hasta {{name}} susuz. Tedavi: ağızdan su, 500 ml, derhal.',
       profanityLevel: N,
       characterId: doc.id,
     },
@@ -540,7 +573,7 @@ async function main() {
       characterId: doc.id,
     },
     {
-      text: 'IV serum mu istiyorsun {{name}}? O zaman bardaktan başla. +{{debtMl}} ml eksik.',
+      text: 'Damar serumu mu istiyorsun {{name}}? O zaman bardaktan başla. +{{debtMl}} ml eksik.',
       profanityLevel: M,
       characterId: doc.id,
     },
@@ -581,18 +614,77 @@ async function main() {
       profanityLevel: N,
       characterId: night.id,
     },
+
+    {
+      text: 'Bir bardak su. Yavaş iç, acele etme.',
+      profanityLevel: S,
+      characterId: sultry.id,
+    },
+    {
+      text: '{{name}}, yaklaş. Bardağı dudağına götür, yavaşça bitir.',
+      profanityLevel: M,
+      characterId: sultry.id,
+    },
+    {
+      text: 'Boş bardak beni kızdırır. Doldur, dudağına değdir. +{{debtMl}} ml borcun var.',
+      profanityLevel: N,
+      characterId: sultry.id,
+    },
+    {
+      text: '{{name}}, su dudağından aksın. Yavaş iç, ben duyayım.',
+      profanityLevel: U,
+      characterId: sultry.id,
+    },
+    {
+      text: 'Kurumuşsun. Bardağı al, yudumla, bir daha uzat.',
+      profanityLevel: U,
+      characterId: sultry.id,
+    },
+    {
+      text: 'Gece su borcunu unutmaz. Bir yudum al.',
+      profanityLevel: S,
+      characterId: gothic.id,
+    },
+    {
+      text: 'Mum söndü {{name}}. Karanlıkta su borcun duruyor. Bir yudum, yoksa gece uzar.',
+      profanityLevel: M,
+      characterId: gothic.id,
+    },
+    {
+      text: 'Mezar sessiz, bardak değil. +{{debtMl}} ml eksik. İç, yoksa gölgen kurur.',
+      profanityLevel: N,
+      characterId: gothic.id,
+    },
+    {
+      text: 'Lütfen bir bardak su iç. Şimdi.',
+      profanityLevel: S,
+      characterId: japon.id,
+    },
+    {
+      text: '{{name}}, lütfen su iç. Bardak boş kalmasın. やめてください。',
+      profanityLevel: M,
+      characterId: japon.id,
+    },
+    {
+      text: 'Su borcun +{{debtMl}} ml. Lütfen kapat. やめてください。',
+      profanityLevel: N,
+      characterId: japon.id,
+    },
   ];
 
-  for (const t of templates) {
-    const now = new Date();
+  const ordered = interleaveByCharacter(templates);
+  const base = Date.now();
+  for (let i = 0; i < ordered.length; i++) {
+    const t = ordered[i];
+    const stamp = new Date(base - i * 1000);
     await em.save(
       em.create(ThreatTemplate, {
         id: createId(),
         ...t,
         isSystem: true,
         isActive: true,
-        createdAt: now,
-        updatedAt: now,
+        createdAt: stamp,
+        updatedAt: stamp,
       }),
     );
   }
@@ -612,6 +704,26 @@ async function main() {
     `HydroRage seed: ${characters.length} karakter, ${templates.length} sistem şablonu.`,
   );
   await ds.destroy();
+}
+
+function interleaveByCharacter(items: Partial<ThreatTemplate>[]) {
+  const groups = new Map<string, Partial<ThreatTemplate>[]>();
+  for (const item of items) {
+    const key = item.characterId ?? 'none';
+    const list = groups.get(key) ?? [];
+    list.push(item);
+    groups.set(key, list);
+  }
+  const buckets = [...groups.values()];
+  const max = Math.max(0, ...buckets.map((bucket) => bucket.length));
+  const out: Partial<ThreatTemplate>[] = [];
+  for (let i = 0; i < max; i++) {
+    for (const bucket of buckets) {
+      const row = bucket[i];
+      if (row) out.push(row);
+    }
+  }
+  return out;
 }
 
 main().catch((e) => {

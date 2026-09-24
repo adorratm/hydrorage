@@ -15,6 +15,7 @@ import { CurrentUser } from '@/auth/current-user.decorator';
 import { UpdateSettingsDto } from '@/settings/settings.dto';
 import { UsersService } from '@/users/users.service';
 import { Locale } from '@/common/locale';
+import { ThreatsQueueService } from '@/queue/threats-queue.service';
 
 @Controller('settings')
 @UseGuards(JwtAuthGuard)
@@ -22,6 +23,7 @@ export class SettingsController {
   constructor(
     @InjectEntityManager() private readonly em: EntityManager,
     private readonly users: UsersService,
+    private readonly threatsQueue: ThreatsQueueService,
   ) {}
 
   private localizeSettings(settings: UserSettings, locale: AppLocale) {
@@ -92,6 +94,7 @@ export class SettingsController {
     let settings = await this.em.findOne(UserSettings, {
       where: { userId: user.userId },
     });
+    const previousLocale = settings?.locale;
     if (!settings) {
       settings = this.em.create(UserSettings, {
         userId: user.userId,
@@ -101,6 +104,9 @@ export class SettingsController {
       Object.assign(settings, dto);
     }
     await this.em.save(settings);
+    if (dto.locale && dto.locale !== previousLocale) {
+      await this.threatsQueue.rewritePendingMessages(user.userId, dto.locale);
+    }
     const full = await this.em.findOneOrFail(UserSettings, {
       where: { userId: user.userId },
       relations: { activeCharacter: true },

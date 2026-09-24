@@ -19,14 +19,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: ['hydrorage', 'com.hydrorage.app'],
   owner: 'adorratm',
   userInterfaceStyle: 'dark',
-  newArchEnabled: true,
   description:
     'Hidrasyon takibi ve sesli hatırlatma. +18 veya güvenli mod. Su içmezsen küfür yersin — istersen küfürsüz.',
-  splash: {
-    image: './assets/images/splash-icon.png',
-    resizeMode: 'contain',
-    backgroundColor: '#11131e',
-  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.hydrorage.app',
@@ -86,6 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     fallbackToCacheTimeout: 0,
   },
   plugins: [
+    'expo-dev-client',
     'expo-router',
     'expo-secure-store',
     'expo-apple-authentication',
@@ -102,11 +97,30 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      'react-native-google-mobile-ads',
+      {
+        androidAppId:
+          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
+          'ca-app-pub-3940256099942544~3347511713',
+        iosAppId:
+          process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
+          'ca-app-pub-3940256099942544~1458002511',
+      },
+    ],
+    [
       'expo-notifications',
       {
         icon: './assets/images/icon.png',
         color: '#BD93F9',
         sounds: [],
+      },
+    ],
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          enableSceneSupport: true,
+        },
       },
     ],
   ],

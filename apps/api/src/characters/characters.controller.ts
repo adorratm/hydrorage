@@ -35,7 +35,7 @@ export class CharactersController {
         description: meta.description,
         badge: meta.badge || c.badge,
         dosageLabel: meta.dosageLabel || c.dosageLabel,
-        unlocked: streak >= c.unlockStreakDays,
+        unlocked: true,
         unlockStreakDays: c.unlockStreakDays,
         userStreakDays: streak,
       };

@@ -55,6 +55,7 @@ export function StreakPanel({
           <Text style={styles.heroUnit}>{tr('streak.days')}</Text>
         </View>
         <Text style={styles.heroLabel}>{tr('streak.title')}</Text>
+        <Text style={styles.empty}>{tr('streak.challenge')}</Text>
         {days === 0 ? (
           <Text style={styles.empty}>{tr('streak.empty')}</Text>
         ) : null}
@@ -122,8 +123,8 @@ const styles = StyleSheet.create({
   },
   heroNum: {
     fontFamily: fonts.bold,
-    fontSize: 40,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.onSurface,
     lineHeight: 44,
   },
@@ -135,14 +136,14 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     color: colors.secondaryFixedDim,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   empty: {
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 16,
     marginTop: 4,
   },
   today: { gap: 6 },
@@ -153,12 +154,12 @@ const styles = StyleSheet.create({
   },
   todayLabel: {
     color: colors.onSurfaceVariant,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
   },
   todayValue: {
     color: colors.onSurface,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
   },
   barTrack: {
@@ -175,8 +176,8 @@ const styles = StyleSheet.create({
   stripBlock: { gap: 8 },
   section: {
     color: colors.onSurfaceVariant,
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
@@ -217,8 +218,8 @@ const styles = StyleSheet.create({
   },
   msText: {
     color: colors.muted,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
   },
   msTextOn: {
     color: colors.primaryContainer,

@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: {
     color: colors.primaryContainer,
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     letterSpacing: -0.3,
   },
   badge: {
@@ -117,14 +117,14 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: colors.error,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
   badgeTextSafe: {
     color: '#50fa7b',
   },
-  sub: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700', marginTop: 2 },
+  sub: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700', marginTop: 2 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   iconBtn: {
     width: 44,

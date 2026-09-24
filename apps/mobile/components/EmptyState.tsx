@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
   title: {
     color: colors.onSurface,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     textAlign: 'center',
     alignSelf: 'stretch',
   },
   body: {
     color: colors.onSurfaceVariant,
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
     lineHeight: 18,
     alignSelf: 'stretch',

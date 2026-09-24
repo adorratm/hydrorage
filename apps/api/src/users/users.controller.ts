@@ -59,6 +59,11 @@ export class UsersController {
     return this.users.update(user.userId, dto);
   }
 
+  @Post('me/seen')
+  seen(@CurrentUser() user: { userId: string }) {
+    return this.users.markOpened(user.userId);
+  }
+
   @Post('me/push-token')
   pushToken(
     @CurrentUser() user: { userId: string },

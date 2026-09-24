@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
   },
   value: {
     color: colors.primary,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
-  goal: { color: colors.onSurfaceVariant, fontSize: 10, fontWeight: '700' },
+  goal: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '700' },
 });

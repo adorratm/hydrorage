@@ -43,6 +43,7 @@ export class IntakeService {
 
     if (computed.netMl > 0) {
       await this.completeDueThreats(userId);
+      await this.threatsQueue.rescheduleAfterIntake(userId);
     }
 
     await this.updateStreak(userId);

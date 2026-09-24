@@ -11,6 +11,7 @@ import {
 import { ThreatStatus } from '@/database/enums';
 import { TemplatesService } from '@/templates/templates.service';
 import { RealtimeService } from '@/realtime/realtime.service';
+import { ThreatsQueueService } from '@/queue/threats-queue.service';
 import { fillTemplate, firstName } from '@/common/hydration';
 import { QUEUE_TOKENS, REDIS, ROUTINES_QUEUE } from '@/redis/redis.tokens';
 import { RoutineSweepJob } from '@/queue/queue.types';
@@ -26,6 +27,7 @@ export class RoutinesQueueService implements OnModuleDestroy {
     @InjectEntityManager() private readonly em: EntityManager,
     private readonly templates: TemplatesService,
     private readonly realtime: RealtimeService,
+    private readonly threats: ThreatsQueueService,
   ) {}
 
   async startWorker() {
@@ -87,6 +89,8 @@ export class RoutinesQueueService implements OnModuleDestroy {
 
       this.realtime.routineMissed(log.userId, { log, threat });
     }
+
+    await this.threats.sweepComebacks();
   }
 
   async onModuleDestroy() {

@@ -5,7 +5,7 @@
   },
   "build": {
     "base": {
-      "node": "22.14.0",
+      "node": "26.10.0",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.hydrorage.com.tr/api",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "736234086279-r79kmn2n19n58rso0lv8ln6ej02d3bhc.apps.googleusercontent.com",
