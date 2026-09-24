@@ -345,12 +345,19 @@ button {
   flex-shrink: 0;
 }
 
+.nav-menu {
+  display: contents;
+}
+
+.nav-menu__toggle,
+.nav-menu__backdrop {
+  display: none;
+}
+
 .nav-links {
   display: flex;
   gap: 0.85rem;
   align-items: center;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
 .nav-links::-webkit-scrollbar {
@@ -1854,6 +1861,94 @@ button {
 @keyframes line-draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .site-nav,
+  .blog-header,
+  .legal-header {
+    position: sticky;
+  }
+
+  .nav-menu {
+    display: block;
+    margin-left: auto;
+  }
+
+  .nav-menu__toggle {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0 10px;
+    border: 1px solid rgba(189, 147, 249, 0.35);
+    border-radius: 12px;
+    background: rgba(8, 12, 22, 0.55);
+    cursor: pointer;
+  }
+
+  .nav-menu__toggle span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--ink);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .nav-menu.is-open .nav-menu__toggle span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .nav-menu.is-open .nav-menu__toggle span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-menu.is-open .nav-menu__toggle span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .nav-menu__backdrop {
+    display: block;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    border: 0;
+    background: transparent;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    z-index: 2;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15rem;
+    padding: 0.4rem 0.75rem 0.9rem;
+    background: rgba(6, 8, 14, 0.98);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav-menu.is-open .nav-links {
+    display: flex;
+  }
+
+  .nav-link {
+    padding: 0.75rem 0.55rem;
+    font-size: 1rem;
+  }
+
+  .locale-toggle {
+    align-self: flex-start;
+    margin: 0.35rem 0.55rem 0.2rem;
   }
 }
 

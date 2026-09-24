@@ -11,6 +11,7 @@ import { CookieBanner } from './CookieBanner';
 import { StoreButtons, storeLinks } from './StoreButtons';
 import { WaterDrop, FallingDrops } from './WaterDrop';
 import { LocaleToggle, useLocale } from './locale';
+import { NavMenu } from './NavMenu';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -226,7 +227,7 @@ export function Landing() {
         >
           {brand}
         </button>
-        <div className="nav-links">
+        <NavMenu>
           <a className="nav-link" href={content.nav.linkHref}>
             {content.nav.linkLabel}
           </a>
@@ -240,7 +241,7 @@ export function Landing() {
             {t('web.nav.blog')}
           </Link>
           <LocaleToggle />
-        </div>
+        </NavMenu>
       </nav>
 
       <header className="hero">

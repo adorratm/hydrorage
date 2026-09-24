@@ -4,6 +4,7 @@ import { loadPlausible } from './seo';
 import { SiteFooter } from './SiteFooter';
 import { CookieBanner } from './CookieBanner';
 import { LocaleToggle, useLocale } from './locale';
+import { NavMenu } from './NavMenu';
 import type { AppLocale } from '@hydrorage/shared';
 
 type Localized = {
@@ -113,7 +114,7 @@ function BlogChrome({
         <Link className="brand-mark" to="/">
           HydroRage
         </Link>
-        <nav className="nav-links" aria-label="Blog">
+        <NavMenu>
           {backTo !== '/' ? (
             <Link className="nav-link" to={backTo}>
               {backLabel}
@@ -123,7 +124,7 @@ function BlogChrome({
             {t('common.home')}
           </Link>
           <LocaleToggle />
-        </nav>
+        </NavMenu>
       </header>
       {children}
       <SiteFooter />

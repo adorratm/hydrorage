@@ -4,6 +4,7 @@ import { loadPlausible } from './seo';
 import { SiteFooter } from './SiteFooter';
 import { CookieBanner } from './CookieBanner';
 import { LocaleToggle, useLocale } from './locale';
+import { NavMenu } from './NavMenu';
 
 const UPDATED = '21 Eylül 2026';
 const UPDATED_EN = 'September 21, 2026';
@@ -48,7 +49,7 @@ export function LegalLayout({
         <Link className="brand-mark" to="/">
           HydroRage
         </Link>
-        <nav className="nav-links">
+        <NavMenu>
           <Link className="nav-link" to="/">
             {t('common.home')}
           </Link>
@@ -56,7 +57,7 @@ export function LegalLayout({
             {t('common.blog')}
           </Link>
           <LocaleToggle />
-        </nav>
+        </NavMenu>
       </header>
       <article className="legal-body">
         <nav
