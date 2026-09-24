@@ -12,9 +12,9 @@ try {
 } catch {
   console.log('Yarn 1 paketi kaldırılamadı, komut yine de değiştirilecek');
 }
-execSync('npm install -g @yarnpkg/cli@4.18.0', { stdio: 'inherit' });
+execSync('npm install -g @yarnpkg/cli-dist@4.18.0', { stdio: 'inherit' });
 
-const yarnJs = path.join(run('npm root -g'), '@yarnpkg/cli/bin/yarn.js');
+const yarnJs = path.join(run('npm root -g'), '@yarnpkg/cli-dist/bin/yarn.js');
 if (!fs.existsSync(yarnJs)) {
   console.error('Yarn 4 dosyası yok:', yarnJs);
   process.exit(1);
