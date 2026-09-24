@@ -1,7 +1,8 @@
 const { execSync } = require('node:child_process');
 const fs = require('node:fs');
+const path = require('node:path');
 
-execSync('npm install -g yarn@4.18.0', { stdio: 'inherit' });
+execSync('npm install -g @yarnpkg/cli@4.18.0', { stdio: 'inherit' });
 
 function run(command) {
   return execSync(command, { encoding: 'utf8', shell: true }).trim();
@@ -11,9 +12,9 @@ function versionOf(bin) {
   return execSync(`"${bin}" --version`, { encoding: 'utf8' }).trim();
 }
 
-const installed = `${run('npm prefix -g')}/bin/yarn`;
+const installed = path.join(run('npm prefix -g'), 'bin', 'yarn');
 let current = run('command -v yarn');
-console.log('npm yarn', installed, versionOf(installed));
+console.log('installed yarn', installed, versionOf(installed));
 console.log('path yarn', current, versionOf(current));
 
 if (!versionOf(current).startsWith('4.')) {
