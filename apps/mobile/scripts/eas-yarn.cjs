@@ -20,12 +20,30 @@ if (!fs.existsSync(yarnJs)) {
   process.exit(1);
 }
 
+const bundled = execSync(`"${process.execPath}" "${yarnJs}" --version`, {
+  encoding: 'utf8',
+}).trim();
+console.log('bundle', bundled);
+if (!bundled.startsWith('4.')) {
+  process.exit(1);
+}
+
 const shim = `#!/bin/sh\nexec "${process.execPath}" "${yarnJs}" "$@"\n`;
 const target = path.join(path.dirname(process.execPath), 'yarn');
 
-try {
+function placeShim() {
+  if (fs.existsSync(target) && fs.lstatSync(target).isSymbolicLink()) {
+    fs.unlinkSync(target);
+  }
   fs.writeFileSync(target, shim, { mode: 0o755 });
+}
+
+try {
+  placeShim();
 } catch {
+  if (fs.existsSync(target) && fs.lstatSync(target).isSymbolicLink()) {
+    execSync(`sudo rm -f "${target}"`, { stdio: 'inherit', shell: true });
+  }
   const tmp = path.join(os.tmpdir(), 'yarn-shim');
   fs.writeFileSync(tmp, shim, { mode: 0o755 });
   execSync(`sudo cp "${tmp}" "${target}" && sudo chmod 755 "${target}"`, {
