@@ -122,7 +122,7 @@ function PhoneMock({
         </div>
       </div>
       <div className="phone__drop-mini">
-        <WaterDrop id="phoneDrop" size="sm" cracked />
+        <WaterDrop size="sm" />
       </div>
     </div>
   );
@@ -177,7 +177,7 @@ export function Landing() {
   if (!content) {
     return (
       <div className="page page--loading">
-        <WaterDrop id="loaderDrop" size="sm" className="loader-water" />
+        <WaterDrop size="sm" className="loader-water" />
         <p>{t('common.loading')}</p>
       </div>
     );
@@ -481,7 +481,7 @@ export function Landing() {
             <StoreButtons appleHref={stores.apple} googleHref={stores.google} />
           </div>
           <div className="final__art" aria-hidden>
-            <WaterDrop id="finalDrop" size="lg" cracked className="final__water" />
+            <WaterDrop size="lg" className="final__water" />
           </div>
         </div>
       </section>

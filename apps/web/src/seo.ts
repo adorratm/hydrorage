@@ -50,6 +50,11 @@ export function applyLandingSeo(
   upsertMeta('property', 'og:url', meta.canonical);
   upsertMeta('property', 'og:image', meta.ogImage);
   upsertMeta('property', 'og:locale', locale === 'en' ? 'en_US' : 'tr_TR');
+  upsertMeta(
+    'property',
+    'og:locale:alternate',
+    locale === 'en' ? 'tr_TR' : 'en_US',
+  );
 
   upsertMeta('name', 'twitter:card', 'summary_large_image');
   upsertMeta('name', 'twitter:title', meta.title);
@@ -70,7 +75,13 @@ export function applyLandingSeo(
     name: 'HydroRage',
     applicationCategory: 'HealthApplication',
     operatingSystem: 'iOS, Android',
+    inLanguage: ['tr', 'en'],
     description: meta.description,
+    featureList: [
+      'Hydration tracking',
+      'Spoken reminders',
+      'Safe mode without profanity',
+    ],
     url: meta.siteUrl,
     image: meta.ogImage,
     offers: {

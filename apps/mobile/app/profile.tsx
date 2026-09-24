@@ -19,6 +19,9 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/constants/theme';
 import { getLocale, setLocale, useLocale, useT } from '@/lib/i18n';
+import { confirmAction, showAlert } from '@/lib/dialog';
+import { applyUpdateIfAvailable } from '@/lib/updates';
+import { requestAppTour } from '@/lib/tour';
 
 type Me = {
   id: string;
@@ -87,15 +90,28 @@ export default function ProfileScreen() {
     onError: (e: Error) => Alert.alert(tr('common.error'), e.message),
   });
 
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
   const confirmDelete = () => {
-    Alert.alert(tr('profile.delete'), tr('dialog.confirmDelete'), [
-      { text: tr('common.cancel'), style: 'cancel' },
-      {
-        text: tr('common.delete'),
-        style: 'destructive',
-        onPress: () => deleteAccount.mutate(),
-      },
-    ]);
+    confirmAction({
+      title: tr('profile.delete'),
+      message: tr('profile.deleteBody'),
+      confirmLabel: tr('profile.delete'),
+      cancelLabel: tr('common.cancel'),
+      destructive: true,
+      onConfirm: () => deleteAccount.mutate(),
+    });
+  };
+
+  const onCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    const result = await applyUpdateIfAvailable();
+    setCheckingUpdate(false);
+    if (result === 'none') {
+      showAlert(tr('profile.updateCheck'), tr('profile.updateNone'));
+    } else if (result === 'unavailable') {
+      showAlert(tr('profile.updateCheck'), tr('profile.updateUnavailable'));
+    }
   };
 
   return (
@@ -182,6 +198,14 @@ export default function ProfileScreen() {
       </Card>
 
       <PrimaryButton
+        label={tr('tour.replay')}
+        variant="secondary"
+        onPress={() => {
+          requestAppTour();
+          router.back();
+        }}
+      />
+      <PrimaryButton
         label={tr('profile.export')}
         variant="secondary"
         onPress={() => exportData.mutate()}
@@ -191,6 +215,12 @@ export default function ProfileScreen() {
         label={tr('profile.logout')}
         variant="secondary"
         onPress={logout}
+      />
+      <PrimaryButton
+        label={tr('profile.updateCheck')}
+        variant="secondary"
+        onPress={() => void onCheckUpdate()}
+        loading={checkingUpdate}
       />
       <PrimaryButton
         label={tr('profile.delete')}

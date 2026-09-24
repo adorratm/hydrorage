@@ -10,7 +10,10 @@ import {
   Character,
   Intake,
   RefreshToken,
+  Routine,
+  RoutineLog,
   ThreatEvent,
+  ThreatTemplate,
   User,
   UserSettings,
 } from '@/database/entities';
@@ -94,8 +97,16 @@ export class UsersService {
   async deleteAccount(userId: string) {
     const user = await this.em.findOneBy(User, { id: userId });
     if (!user) throw new NotFoundException('Kullanıcı bulunamadı');
-    await this.em.delete(RefreshToken, { userId });
-    await this.em.remove(user);
+    await this.em.transaction(async (tx) => {
+      await tx.delete(RoutineLog, { userId });
+      await tx.delete(Routine, { userId });
+      await tx.delete(ThreatEvent, { userId });
+      await tx.delete(Intake, { userId });
+      await tx.delete(ThreatTemplate, { userId });
+      await tx.delete(UserSettings, { userId });
+      await tx.delete(RefreshToken, { userId });
+      await tx.delete(User, { id: userId });
+    });
     return { ok: true };
   }
 

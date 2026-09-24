@@ -3,9 +3,11 @@ import {
   Pressable,
   Text,
   StyleSheet,
+  View,
   ViewStyle,
   ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/constants/theme';
 
 type Props = {
@@ -15,6 +17,7 @@ type Props = {
   style?: ViewStyle;
   loading?: boolean;
   disabled?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
 };
 
 export function PrimaryButton({
@@ -24,6 +27,7 @@ export function PrimaryButton({
   style,
   loading,
   disabled,
+  icon,
 }: Props) {
   const bg =
     variant === 'primary'
@@ -52,7 +56,10 @@ export function PrimaryButton({
       {loading ? (
         <ActivityIndicator color={color} />
       ) : (
-        <Text style={[styles.text, { color }]}>{label}</Text>
+        <View style={styles.labelRow}>
+          {icon ? <Ionicons name={icon} size={18} color={color} /> : null}
+          <Text style={[styles.text, { color }]}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -73,5 +80,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });

@@ -9,7 +9,6 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
 import { useAuth } from '@/lib/auth';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -67,6 +66,7 @@ export default function LoginScreen() {
 
       <PrimaryButton
         label={tr('login.google')}
+        icon="logo-google"
         onPress={onGoogle}
         loading={loadingGoogle}
         disabled={!googleReady}
@@ -74,23 +74,13 @@ export default function LoginScreen() {
       />
 
       {Platform.OS === 'ios' && appleAvailable ? (
-        <View style={styles.appleWrap}>
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={
-              AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
-            }
-            buttonStyle={
-              AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-            }
-            cornerRadius={14}
-            style={styles.appleBtn}
-            onPress={onApple}
-          />
-        </View>
-      ) : null}
-
-      {Platform.OS === 'ios' && appleAvailable && loadingApple ? (
-        <Text style={styles.hint}>{tr('common.loading')}</Text>
+        <PrimaryButton
+          label={tr('login.apple')}
+          icon="logo-apple"
+          onPress={onApple}
+          loading={loadingApple}
+          style={styles.authBtn}
+        />
       ) : null}
 
       <Text style={styles.disclaimer}>{tr('login.legal')}</Text>
@@ -131,13 +121,6 @@ const styles = StyleSheet.create({
   },
   sub: { color: colors.onSurfaceVariant, textAlign: 'center', lineHeight: 20 },
   authBtn: { width: '100%', height: 48 },
-  appleWrap: {
-    width: '100%',
-    height: 48,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  appleBtn: { width: '100%', height: 48 },
   hint: {
     color: colors.muted,
     fontSize: 16,

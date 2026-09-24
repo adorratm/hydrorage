@@ -211,15 +211,26 @@ export class AuthService {
       where: { token: refreshToken },
       relations: { user: true },
     });
-    if (!stored || stored.expiresAt < new Date()) {
+    if (!stored) {
       throw new UnauthorizedException('Refresh token geçersiz');
     }
-    await this.em.remove(stored);
-    return this.issueTokens(
-      stored.user.id,
-      stored.user.email,
-      stored.user.displayName,
-    );
+    stored.expiresAt = this.refreshExpiresAt();
+    await this.em.save(stored);
+    const accessToken = await this.signAccess(stored.user.id, stored.user.email);
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: stored.user.id,
+        email: stored.user.email,
+        displayName: stored.user.displayName,
+      },
+    };
+  }
+
+  async logout(refreshToken: string) {
+    await this.em.delete(RefreshToken, { token: refreshToken });
+    return { ok: true };
   }
 
   private googleAudiences() {
@@ -295,17 +306,9 @@ export class AuthService {
     email: string,
     displayName: string,
   ) {
-    const accessToken = await this.jwt.signAsync(
-      { sub: userId, email },
-      {
-        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
-        expiresIn: (this.config.get<string>('JWT_ACCESS_EXPIRES') ||
-          '15m') as `${number}m`,
-      },
-    );
+    const accessToken = await this.signAccess(userId, email);
     const refreshToken = randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    const expiresAt = this.refreshExpiresAt();
     await this.em.save(
       this.em.create(RefreshToken, { token: refreshToken, userId, expiresAt }),
     );
@@ -314,5 +317,34 @@ export class AuthService {
       refreshToken,
       user: { id: userId, email, displayName },
     };
+  }
+
+  private async signAccess(userId: string, email: string) {
+    return this.jwt.signAsync(
+      { sub: userId, email },
+      {
+        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+        expiresIn: (this.config.get<string>('JWT_ACCESS_EXPIRES') ||
+          '15m') as `${number}m`,
+      },
+    );
+  }
+
+  /** Çıkışa kadar geçerli. Süre yalnızca kayıp token için üst sınırdır. */
+  private refreshExpiresAt() {
+    const raw = (this.config.get<string>('JWT_REFRESH_EXPIRES') || '3650d').trim();
+    const match = /^(\d+)([dhms])$/.exec(raw);
+    const at = new Date();
+    if (!match) {
+      at.setDate(at.getDate() + 3650);
+      return at;
+    }
+    const amount = Number(match[1]);
+    const unit = match[2];
+    if (unit === 'd') at.setDate(at.getDate() + amount);
+    else if (unit === 'h') at.setHours(at.getHours() + amount);
+    else if (unit === 'm') at.setMinutes(at.getMinutes() + amount);
+    else at.setSeconds(at.getSeconds() + amount);
+    return at;
   }
 }

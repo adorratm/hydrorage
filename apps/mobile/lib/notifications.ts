@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { AppState, Platform } from 'react-native';
 import { api } from '@/lib/api';
-import { speakThreat } from '@/lib/speech';
+import { playIncomingThreat } from '@/lib/live-threat';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => {
@@ -10,7 +10,7 @@ Notifications.setNotificationHandler({
     return {
       shouldPlaySound: !active,
       shouldSetBadge: false,
-      shouldShowBanner: true,
+      shouldShowBanner: !active,
       shouldShowList: true,
     };
   },
@@ -50,95 +50,33 @@ export async function registerExpoPushToken() {
   }
 }
 
-async function voiceAllowed(): Promise<{
-  ok: boolean;
-  muted: boolean;
-  whisper: boolean;
-  whisperVolume: number;
-  characterSlug?: string;
-}> {
-  try {
-    const settings = await api<{
-      voiceNotifications: boolean;
-      officeMute: boolean;
-      nightMode: boolean;
-      nightStartHour: number;
-      nightEndHour: number;
-      publicShameProtection: boolean;
-      whisperVolume: number;
-      activeCharacter?: { slug?: string } | null;
-    }>('/settings');
-
-    if (!settings.voiceNotifications) {
-      return { ok: false, muted: true, whisper: false, whisperVolume: 45 };
-    }
-
-    const hour = new Date().getHours();
-    const start = settings.nightStartHour ?? 23;
-    const end = settings.nightEndHour ?? 8;
-    const inNight =
-      settings.nightMode &&
-      (start > end ? hour >= start || hour < end : hour >= start && hour < end);
-
-    const shame = settings.publicShameProtection !== false;
-    const quiet = settings.officeMute || inNight;
-
-    if (quiet && shame) {
-      // Utanç koruması: ses yok, sadece titreşim / düşük whisper
-      return {
-        ok: true,
-        muted: settings.whisperVolume <= 0,
-        whisper: settings.whisperVolume > 0,
-        whisperVolume: settings.whisperVolume ?? 45,
-        characterSlug: settings.activeCharacter?.slug,
-      };
-    }
-
-    if (quiet && !shame) {
-      return { ok: false, muted: true, whisper: false, whisperVolume: 45 };
-    }
-
-    return {
-      ok: true,
-      muted: false,
-      whisper: false,
-      whisperVolume: 100,
-      characterSlug: settings.activeCharacter?.slug,
-    };
-  } catch {
-    return { ok: true, muted: false, whisper: false, whisperVolume: 100 };
-  }
-}
-
-const spokenIds = new Set<string>();
-
-async function speakNotificationBody(
-  body: string | null | undefined,
-  data?: { locale?: string; characterSlug?: string; yameteSound?: boolean },
-) {
-  const text = (body ?? '').trim();
-  if (!text) return;
-  const { ok, muted, whisper, whisperVolume, characterSlug } =
-    await voiceAllowed();
-  if (!ok) return;
-  const locale = data?.locale === 'en' || data?.locale === 'tr' ? data.locale : undefined;
-  await speakThreat(text, muted, {
-    characterSlug: data?.characterSlug || characterSlug,
+function speakOnce(notification: Notifications.Notification) {
+  const data = notification.request.content.data as
+    | {
+        locale?: string;
+        characterSlug?: string;
+        yameteSound?: boolean;
+        threatId?: string;
+      }
+    | undefined;
+  const key =
+    typeof data?.threatId === 'string' && data.threatId
+      ? data.threatId
+      : notification.request.identifier;
+  const locale =
+    data?.locale === 'en' || data?.locale === 'tr' ? data.locale : undefined;
+  void playIncomingThreat({
+    key,
+    text: notification.request.content.body ?? '',
+    characterSlug: data?.characterSlug,
     locale,
-    silent: true,
-    volume: whisper ? Math.max(0.05, whisperVolume / 100) : 1,
     yameteSound: data?.yameteSound === true,
   });
 }
 
-function speakOnce(notification: Notifications.Notification) {
-  const id = notification.request.identifier;
-  if (spokenIds.has(id)) return;
-  spokenIds.add(id);
-  const data = notification.request.content.data as
-    | { locale?: string; characterSlug?: string; yameteSound?: boolean }
-    | undefined;
-  void speakNotificationBody(notification.request.content.body, data);
+function isRecent(date: number) {
+  const ms = date > 1e12 ? date : date * 1000;
+  return Date.now() - ms < 2 * 60 * 1000;
 }
 
 let subscribed = false;
@@ -157,7 +95,9 @@ export function startNotificationSpeechListeners() {
   });
 
   void Notifications.getLastNotificationResponseAsync().then((response) => {
-    if (response) speakOnce(response.notification);
+    if (response && isRecent(response.notification.date)) {
+      speakOnce(response.notification);
+    }
   });
 
   return () => {

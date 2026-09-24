@@ -184,7 +184,7 @@ export default function SablonlarScreen() {
                   speakThreat(
                     withRandomJapaneseTail(spoken(tpl.text), slug, !tpl.isSystem),
                     false,
-                    { characterSlug: slug },
+                    { characterSlug: slug ?? undefined },
                   );
                 }}
                 style={{ flex: 1 }}

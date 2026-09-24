@@ -139,7 +139,7 @@ export function PrivacyPage() {
       <p>
         Veriler, hesabınız aktif olduğu sürece ve silme talebinden sonra yasal
         saklama süreleri saklı kalmak kaydıyla silinir veya anonimleştirilir.
-        Hesap silme: uygulama içi “Hesabımı sil” veya {CONTACT}.
+        Hesap silme: uygulamada Profil → “Hesabı sil”, ya da {CONTACT}.
       </p>
 
       <h2>6. Aktarım ve üçüncü taraflar</h2>
@@ -224,10 +224,12 @@ export function TermsPage() {
         olarak sorumlu tutulamayız. Zorunlu tüketici hakları saklıdır.
       </p>
 
-      <h2>7. Hesap silme ve fesih</h2>
+      <h2 id="hesap-silme">7. Hesap silme ve fesih</h2>
       <p>
-        İstediğiniz zaman hesabınızı silebilirsiniz. Sözleşmeyi ihlal
-        ederseniz erişimi sonlandırabiliriz. Silme sonrası veriler{' '}
+        İstediğiniz zaman hesabınızı silebilirsiniz: uygulamada Profil →
+        “Hesabı sil”. Onaydan sonra hesap, su kayıtları ve ayarlar kalıcı
+        olarak silinir. Sözleşmeyi ihlal ederseniz erişimi sonlandırabiliriz.
+        Silme sonrası veriler{' '}
         <Link to="/gizlilik">Gizlilik Politikası</Link>’na göre işlenir.
       </p>
 
@@ -467,7 +469,13 @@ export function PrivacyPageEn() {
         Website cookies are described in the{' '}
         <Link to="/cookies">Cookie Policy</Link>.
       </p>
-      <h2>6. Contact</h2>
+      <h2 id="delete-account">6. Delete your account</h2>
+      <p>
+        In the app open Profile and tap “Delete account”. After you confirm,
+        the account, drink logs, and settings are permanently deleted. You can
+        also email {CONTACT}.
+      </p>
+      <h2>7. Contact</h2>
       <p>Privacy requests: {CONTACT}</p>
     </LegalLayout>
   );

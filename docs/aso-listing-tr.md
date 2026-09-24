@@ -35,6 +35,25 @@ https://hydrorage.com.tr/kosullar
 ## Destek URL
 https://hydrorage.com.tr/
 
+## Hesap silme URL (Play Console zorunlu)
+https://hydrorage.com.tr/gizlilik#hesap-silme
+https://hydrorage.com.tr/privacy#delete-account
+
+## English listing
+Subtitle: Hydration reminders, with a safe mode
+Keywords: hydration,water,reminder,tracker,habit,drink water,health
+Short description: Water reminder with spoken nudges. Safe mode available.
+Promotional text: Track water. Miss the goal and a character reminds you — profanity is optional.
+
+## Mağaza konsolunda senin doldurman gerekenler
+- Yaş: 17+ (güçlü dil, kullanıcı +18 modu kapatabilir)
+- Kategori: Health & Fitness
+- Reklam: evet (AdMob)
+- Veri silme: uygulama içi Profil → Hesabı sil, web URL yukarıda
+- Gizlilik URL her iki mağazada da https://hydrorage.com.tr/gizlilik
+- iPad ekran görüntüsü: supportsTablet açık, iPad görselleri de yükle
+- Paylaşım görseli 1200×630 PNG (site OG görseli şu an SVG; sosyal ağlar PNG ister)
+
 ## Screenshot önerileri
 1. Takip — günlük halka / kalan ml
 2. Tehdit — +18 açık

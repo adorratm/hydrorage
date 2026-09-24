@@ -16,7 +16,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: ['hydrorage', 'com.hydrorage.app'],
+  // Linking tek şema ister. Google dönüşü bundle şemasıyla kalır (Info.plist).
+  scheme: 'hydrorage',
   owner: 'adorratm',
   userInterfaceStyle: 'dark',
   description:
@@ -33,10 +34,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ['remote-notification', 'audio'],
       NSUserTrackingUsageDescription:
-        'Hatırlatmalar ve hidrasyon takibi için kullanılır.',
-    },
-    privacyManifests: {
-      NSPrivacyAccessedAPITypes: [],
+        'Reklamları ilginize daha uygun göstermek için kullanılır. İzin vermezseniz uygulama çalışmaya devam eder.',
+      CFBundleURLTypes: [
+        {
+          CFBundleURLSchemes: ['com.hydrorage.app'],
+        },
+      ],
     },
   },
   android: {
@@ -80,7 +83,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     fallbackToCacheTimeout: 0,
   },
   plugins: [
-    'expo-dev-client',
+    ...(process.env.EAS_BUILD_PROFILE === 'production' ||
+    process.env.EAS_BUILD_PROFILE === 'preview'
+      ? []
+      : ['expo-dev-client' as const]),
     'expo-router',
     'expo-secure-store',
     'expo-apple-authentication',
@@ -101,10 +107,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         androidAppId:
           process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
-          'ca-app-pub-3940256099942544~3347511713',
+          (process.env.EAS_BUILD_PROFILE === 'production'
+            ? ''
+            : 'ca-app-pub-3940256099942544~3347511713'),
         iosAppId:
           process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
-          'ca-app-pub-3940256099942544~1458002511',
+          (process.env.EAS_BUILD_PROFILE === 'production'
+            ? ''
+            : 'ca-app-pub-3940256099942544~1458002511'),
       },
     ],
     [

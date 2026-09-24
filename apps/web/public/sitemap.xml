@@ -16,6 +16,36 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://hydrorage.com.tr/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://hydrorage.com.tr/terms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://hydrorage.com.tr/kvkk</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://hydrorage.com.tr/aydinlatma-metni</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://hydrorage.com.tr/cerez-politikasi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://hydrorage.com.tr/cookies</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://hydrorage.com.tr/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

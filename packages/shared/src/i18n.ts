@@ -41,6 +41,41 @@ const dict = {
     'onboarding.step': 'Adım {{current}} / {{total}}',
     'onboarding.ageRequired': '18+ onayı gerekli',
     'onboarding.a11yWizard': 'Kurulum sihirbazı',
+    'tour.skip': 'Atla',
+    'tour.next': 'İleri',
+    'tour.done': 'Anladım',
+    'tour.replay': 'Uygulamayı tanı',
+    'tour.a11y': 'Uygulama turu',
+    'tour.trackTitle': 'Takip',
+    'tour.trackBody':
+      'Halka bugünkü net suyu ve kalan mililitreyi gösterir. Seri, hedefi üst üste tuttuğun günlerdir. Bir sonraki tehdidin saati ve metni de bu ekranda durur; Dinle ile sesini duyarsın.',
+    'tour.drinksTitle': 'İçecek ekle',
+    'tour.drinksBody':
+      'Su, kahve, çay, maden suyu, alkol, protein, ilaç veya enerji seç. Mililitreyi hazır ölçülerden al ya da kendin yaz, sonra ekle. Bugünkü liste aşağıda birikir.',
+    'tour.drinksDebtTitle': 'Su borcu',
+    'tour.drinksDebtBody':
+      'Kahve, çay, enerji ve alkol net suya tam yazılmaz; bir kısmı borç olarak düşer. Listedeki bir kayda basınca mililitreyi düzeltir ya da o kaydı silersin. Üstteki süzgeçler su, kafein ve takviyeyi ayırır.',
+    'tour.threatTitle': 'Tehdit',
+    'tour.threatBody':
+      'Hatırlatıcıyı buradan başlatır ve durdurursun. +18 küfürlü ses açar, güvenli mod kapatır. Aralık, ofis sessizi ve gece modu da bu ekrandadır. Önizlemeyi Dinle ile duyarsın.',
+    'tour.charactersTitle': 'Karakterler',
+    'tour.charactersBody':
+      'Her karakter ayrı bir sestir. Kadın, erkek, seksi, gotik veya Japon sesini seçip örnek cümleyi dinlersin. Seçtiğin ses hatırlatmalarda ve şablonlarda okunur.',
+    'tour.routinesTitle': 'Rutinler',
+    'tour.routinesBody':
+      'Belirli bir saate su görevi yazarsın: başlık, mililitre ve saat. Şiddet hafif, sert veya siren olabilir. Zaman çizelgesinde planlananları görür, içince tamamlar, kaçırırsan ihlal olarak kalır.',
+    'tour.templatesTitle': 'Hazır şablonlar',
+    'tour.templatesBody':
+      'Her hazır cümle bir karaktere bağlıdır. {{name}} oturumdaki adınla, {{debtMl}} kalan mililitreyle dolar. Dinle, doldurulmuş hali sesli okur. Seviye güvenliden filtresize kadar gider.',
+    'tour.templatesOwnTitle': 'Kendi şablonun',
+    'tour.templatesOwnBody':
+      'Üstteki kutuya kendi cümleni yazıp seviyesini seçerek eklersin. Hazır şablonlar silinmez; kendininkini kapatabilir veya silebilirsin. Kapalı şablon hatırlatmaya girmez.',
+    'tour.statsTitle': 'İstatistik',
+    'tour.statsBody':
+      'Haftalık içişini, yüzdeyi ve yediğin fırçayı burada görürsün. Karneni paylaşabilirsin.',
+    'tour.profileTitle': 'Profil',
+    'tour.profileBody':
+      'Sağ üstteki kişi simgesinden günlük hedefi, dili ve hesabını değiştirirsin. Verini dışa aktarır, turu tekrar açar veya hesabı kalıcı silersin.',
     'empty.threats': 'Henüz planlı uyarı yok',
     'empty.threatsBody': 'Tehdit ekranından hatırlatıcıyı başlat.',
     'share.weeklyTitle': 'HYDRO-RAGE HAFTALIK KARNE',
@@ -264,6 +299,12 @@ const dict = {
     'profile.updated': 'Profil güncellendi.',
     'profile.logout': 'Çıkış yap',
     'profile.delete': 'Hesabı sil',
+    'profile.deleteBody':
+      'Hesabın, su kayıtların ve ayarların kalıcı olarak silinir. Bu işlem geri alınamaz. Devam edilsin mi?',
+    'profile.updateCheck': 'Güncellemeyi denetle',
+    'profile.updateNone': 'Uygulama güncel.',
+    'profile.updateUnavailable':
+      'Bu derlemede uzaktan güncelleme yok. Mağaza sürümünde çalışır.',
     'profile.medicalTitle': 'Tıbbi uyarı',
     'profile.medicalBody':
       'HydroRage tıbbi tavsiye değildir. Hidrasyon hatırlatması eğlence / motivasyon amaçlıdır. Sağlık endişen varsa doktora danış.',
@@ -376,6 +417,41 @@ const dict = {
     'onboarding.step': 'Step {{current}} / {{total}}',
     'onboarding.ageRequired': '18+ confirmation required',
     'onboarding.a11yWizard': 'Setup wizard',
+    'tour.skip': 'Skip',
+    'tour.next': 'Next',
+    'tour.done': 'Got it',
+    'tour.replay': 'Show the tour',
+    'tour.a11y': 'App tour',
+    'tour.trackTitle': 'Track',
+    'tour.trackBody':
+      'The ring shows today’s net water and the millilitres still left. The streak is the days in a row you hit the goal. The next threat’s time and line sit on this screen; Listen plays the voice.',
+    'tour.drinksTitle': 'Add a drink',
+    'tour.drinksBody':
+      'Pick water, coffee, tea, mineral water, alcohol, protein, medicine, or an energy drink. Choose a millilitre preset or type your own, then add it. Today’s list collects underneath.',
+    'tour.drinksDebtTitle': 'Water debt',
+    'tour.drinksDebtBody':
+      'Coffee, tea, energy drinks, and alcohol do not count in full. Part of them is debt and comes off your net total. Tap a log to change the millilitres or delete it. The filters split water, caffeine, and supplements.',
+    'tour.threatTitle': 'Threat',
+    'tour.threatBody':
+      'Start and stop reminders here. +18 turns the profane voice on; safe mode turns it off. Interval, office mute, and night mode live on this screen. Listen plays the preview.',
+    'tour.charactersTitle': 'Characters',
+    'tour.charactersBody':
+      'Each character is a different voice. Pick a woman, a man, the sultry, gothic, or Japanese voice and play the sample. That voice reads your reminders and templates.',
+    'tour.routinesTitle': 'Routines',
+    'tour.routinesBody':
+      'Schedule water for a clock time: title, millilitres, and hour. Intensity can be light, hard, or a siren. The timeline lists what is planned. Mark it done when you drink; a miss stays as a violation.',
+    'tour.templatesTitle': 'Ready-made templates',
+    'tour.templatesBody':
+      'Each ready line belongs to one character. {{name}} becomes your signed-in name and {{debtMl}} the millilitres you still owe. Listen reads the filled line. Levels run from safe to unfiltered.',
+    'tour.templatesOwnTitle': 'Your own template',
+    'tour.templatesOwnBody':
+      'Write your own line in the box, pick a level, and add it. Ready-made lines cannot be deleted. You can turn yours off or delete it. An inactive template is not used in reminders.',
+    'tour.statsTitle': 'Stats',
+    'tour.statsBody':
+      'See the week’s drinking, the percentage, and the scolds you collected. You can share the report.',
+    'tour.profileTitle': 'Profile',
+    'tour.profileBody':
+      'The person icon at the top right changes your daily goal, language, and account. Export your data, replay this tour, or permanently delete the account.',
     'empty.threats': 'No scheduled alerts yet',
     'empty.threatsBody': 'Start reminders from the Threat screen.',
     'share.weeklyTitle': 'HYDRO-RAGE WEEKLY REPORT',
@@ -599,6 +675,12 @@ const dict = {
     'profile.updated': 'Profile updated.',
     'profile.logout': 'Log out',
     'profile.delete': 'Delete account',
+    'profile.deleteBody':
+      'Your account, drink logs, and settings will be permanently deleted. This cannot be undone. Continue?',
+    'profile.updateCheck': 'Check for updates',
+    'profile.updateNone': 'The app is up to date.',
+    'profile.updateUnavailable':
+      'Remote updates are not available in this build. They work in the store version.',
     'profile.medicalTitle': 'Medical notice',
     'profile.medicalBody':
       'HydroRage is not medical advice. Hydration reminders are for fun / motivation. See a doctor if you have health concerns.',

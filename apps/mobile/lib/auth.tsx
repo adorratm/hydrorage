@@ -12,7 +12,13 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { AccessTokenRequest } from 'expo-auth-session';
 import Constants from 'expo-constants';
-import { api, clearSession, getStoredUser, saveSession } from '@/lib/api';
+import {
+  api,
+  getStoredUser,
+  logoutSession,
+  onSessionChange,
+  saveSession,
+} from '@/lib/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -45,6 +51,7 @@ function useSessionState() {
   const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
+    const stop = onSessionChange(setUser);
     getStoredUser()
       .then((u) => setUser(u))
       .finally(() => setLoading(false));
@@ -54,6 +61,7 @@ function useSessionState() {
         .then(setAppleAvailable)
         .catch(() => setAppleAvailable(false));
     }
+    return stop;
   }, []);
 
   const applySession = useCallback(
@@ -107,8 +115,7 @@ function useSessionState() {
   }, [applySession]);
 
   const logout = useCallback(async () => {
-    await clearSession();
-    setUser(null);
+    await logoutSession();
   }, []);
 
   return {

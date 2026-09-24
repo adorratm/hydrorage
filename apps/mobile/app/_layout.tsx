@@ -20,11 +20,14 @@ import {
   startNotificationSpeechListeners,
   registerExpoPushToken,
 } from '@/lib/notifications';
-import { api } from '@/lib/api';
+import { api, startSessionKeepAlive } from '@/lib/api';
 import { getLocale, loadLocale } from '@/lib/i18n';
 import { AppQueryProvider } from '@/lib/query-provider';
 import { DialogHost } from '@/components/DialogHost';
 import { applyUpdateIfAvailable } from '@/lib/updates';
+import { AppTour } from '@/components/AppTour';
+import { ThreatBanner } from '@/components/ThreatBanner';
+import { startLiveThreats } from '@/lib/live-threat';
 import { startAppOpenAds } from '@/lib/ads';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -105,6 +108,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user || !bootstrapped) return;
     const stop = startNotificationSpeechListeners();
+    const stopLive = startLiveThreats();
+    const stopSession = startSessionKeepAlive();
     void registerExpoPushToken();
     const ping = () => {
       void api('/users/me/seen', { method: 'POST', body: '{}' }).catch(() => {});
@@ -119,6 +124,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     });
     return () => {
       stop();
+      stopLive();
+      stopSession();
       sub.remove();
     };
   }, [user, bootstrapped]);
@@ -150,7 +157,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {settings?.onboardingCompleted === true ? <AppTour /> : null}
+      {user ? <ThreatBanner /> : null}
+    </>
+  );
 }
 
 export default function RootLayout() {
@@ -165,11 +178,17 @@ export default function RootLayout() {
     if (!fontsLoaded && !fontError) return;
     patchTextToUbuntu();
     void (async () => {
-      // OTA first — reloadAsync never returns if an update applies
       await applyUpdateIfAvailable();
       await SplashScreen.hideAsync().catch(() => undefined);
     })();
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void applyUpdateIfAvailable();
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return (

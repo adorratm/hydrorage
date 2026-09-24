@@ -55,7 +55,7 @@ button {
   width: 48px;
 }
 
-/* —— Realistic water drop —— */
+/* —— Marka damlası (icon.png, saydam zemin) —— */
 .water-drop {
   position: relative;
   display: inline-block;
@@ -73,38 +73,13 @@ button {
   width: min(180px, 42vw);
 }
 
-.water-drop__svg {
+.water-drop__img {
   width: 100%;
   height: auto;
   display: block;
-  overflow: visible;
-}
-
-.water-drop__body {
   transform-origin: 50% 70%;
   animation: drop-squash 4.8s ease-in-out infinite;
-}
-
-.water-drop__spec {
-  animation: drop-shine 3.6s ease-in-out infinite;
-}
-
-.water-drop__spec--2 {
-  animation-delay: 0.8s;
-}
-
-.water-drop__caustic {
-  animation: caustic-drift 5.5s ease-in-out infinite;
-  transform-origin: center;
-}
-
-.water-drop__crack path {
-  animation: crack-pulse 2.4s ease-in-out infinite;
-}
-
-.water-drop__ground {
-  animation: ground-pulse 4.8s ease-in-out infinite;
-  transform-origin: center;
+  filter: drop-shadow(0 14px 18px rgba(189, 147, 249, 0.28));
 }
 
 .water-drop__ripple {
@@ -113,7 +88,7 @@ button {
   bottom: 2%;
   width: 58%;
   height: 12%;
-  border: 1.5px solid rgba(158, 216, 255, 0.45);
+  border: 1.5px solid rgba(255, 121, 198, 0.45);
   border-radius: 50%;
   transform: translateX(-50%);
   pointer-events: none;
@@ -122,7 +97,7 @@ button {
 
 .water-drop__ripple--b {
   animation-delay: 1.4s;
-  border-color: rgba(189, 147, 249, 0.35);
+  border-color: rgba(189, 147, 249, 0.4);
 }
 
 .falling-drops {
@@ -144,8 +119,9 @@ button {
   animation: none;
 }
 
-.falling-drops__item .water-drop__body {
+.falling-drops__item .water-drop__img {
   animation: drop-tumble 3s linear infinite;
+  filter: none;
 }
 
 .falling-drops__item--0 {
@@ -194,7 +170,6 @@ button {
   bottom: 6%;
   width: 88px;
   z-index: 2;
-  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.45));
 }
 
 .phone__drop-mini .water-drop {
@@ -225,50 +200,6 @@ button {
   }
   55% {
     transform: scale(1.03, 0.96);
-  }
-}
-
-@keyframes drop-shine {
-  0%,
-  100% {
-    opacity: 0.75;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes caustic-drift {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translateY(-10px);
-    opacity: 1;
-  }
-}
-
-@keyframes crack-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes ground-pulse {
-  0%,
-  100% {
-    transform: scaleX(1);
-    opacity: 0.35;
-  }
-  50% {
-    transform: scaleX(1.15);
-    opacity: 0.22;
   }
 }
 
@@ -1991,14 +1922,10 @@ button {
   .final__glow,
   .cookie-banner,
   .water-drop,
-  .water-drop__body,
-  .water-drop__spec,
-  .water-drop__caustic,
-  .water-drop__crack path,
-  .water-drop__ground,
+  .water-drop__img,
   .water-drop__ripple,
   .falling-drops__item,
-  .falling-drops__item .water-drop__body,
+  .falling-drops__item .water-drop__img,
   .reveal,
   .reveal.in-view .step,
   .reveal.in-view .cast__item {
