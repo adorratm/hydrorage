@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "eas-build-pre-install": "corepack enable",
+    "eas-build-pre-install": "node ./scripts/eas-yarn.cjs",
     "update:preview": "eas update --channel preview --message",
     "update:production": "eas update --channel production --message"
   },
