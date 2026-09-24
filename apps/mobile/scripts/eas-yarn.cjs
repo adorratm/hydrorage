@@ -1,37 +1,41 @@
 const { execSync } = require('node:child_process');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
-
-execSync('npm install -g @yarnpkg/cli@4.18.0', { stdio: 'inherit' });
 
 function run(command) {
   return execSync(command, { encoding: 'utf8', shell: true }).trim();
 }
 
-function versionOf(bin) {
-  return execSync(`"${bin}" --version`, { encoding: 'utf8' }).trim();
+try {
+  execSync('npm uninstall -g yarn', { stdio: 'inherit' });
+} catch {
+  console.log('Yarn 1 paketi kaldırılamadı, komut yine de değiştirilecek');
+}
+execSync('npm install -g @yarnpkg/cli@4.18.0', { stdio: 'inherit' });
+
+const yarnJs = path.join(run('npm root -g'), '@yarnpkg/cli/bin/yarn.js');
+if (!fs.existsSync(yarnJs)) {
+  console.error('Yarn 4 dosyası yok:', yarnJs);
+  process.exit(1);
 }
 
-const installed = path.join(run('npm prefix -g'), 'bin', 'yarn');
-let current = run('command -v yarn');
-console.log('installed yarn', installed, versionOf(installed));
-console.log('path yarn', current, versionOf(current));
+const shim = `#!/bin/sh\nexec "${process.execPath}" "${yarnJs}" "$@"\n`;
+const target = path.join(path.dirname(process.execPath), 'yarn');
 
-if (!versionOf(current).startsWith('4.')) {
-  try {
-    fs.rmSync(current, { force: true });
-    fs.symlinkSync(installed, current);
-  } catch {
-    execSync(`sudo rm -f "${current}" && sudo ln -sf "${installed}" "${current}"`, {
-      stdio: 'inherit',
-      shell: true,
-    });
-  }
-  current = run('command -v yarn');
+try {
+  fs.writeFileSync(target, shim, { mode: 0o755 });
+} catch {
+  const tmp = path.join(os.tmpdir(), 'yarn-shim');
+  fs.writeFileSync(tmp, shim, { mode: 0o755 });
+  execSync(`sudo cp "${tmp}" "${target}" && sudo chmod 755 "${target}"`, {
+    stdio: 'inherit',
+    shell: true,
+  });
 }
 
-const version = versionOf(current);
-console.log('yarn now', version);
+const version = execSync('yarn --version', { encoding: 'utf8' }).trim();
+console.log('yarn now', version, 'via', yarnJs);
 if (!version.startsWith('4.')) {
   process.exit(1);
 }
