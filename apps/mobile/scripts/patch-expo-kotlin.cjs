@@ -61,8 +61,22 @@ function main() {
     }
   }
 
+  const rnCatalog = path.join(
+    path.join(__dirname, '../../..'),
+    'node_modules/@react-native/gradle-plugin/gradle/libs.versions.toml',
+  );
+  if (fs.existsSync(rnCatalog)) {
+    const text = fs.readFileSync(rnCatalog, 'utf8');
+    const next = text.replace('kotlin = "2.1.20"', 'kotlin = "2.2.20"');
+    if (next !== text) {
+      fs.writeFileSync(rnCatalog, next);
+      patched += 1;
+      console.log('kotlin 2.2.20:', path.relative(process.cwd(), rnCatalog));
+    }
+  }
+
   if (!patched) {
-    console.log('Expo Kotlin 2.1 pin bulunamadı (zaten yamalı veya paket yok)');
+    console.log('Kotlin 2.1 pin bulunamadı (zaten yamalı veya paket yok)');
   }
 }
 
