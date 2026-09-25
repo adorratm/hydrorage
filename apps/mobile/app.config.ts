@@ -131,6 +131,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         ios: {
           enableSceneSupport: true,
         },
+        android: {
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+        },
       },
     ],
     './plugins/with-gradle-941.js',
