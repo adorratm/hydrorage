@@ -25,7 +25,7 @@ function yarnLocations() {
 }
 
 const yarnBefore = yarnLocations();
-execSync('npm install -g @yarnpkg/cli-dist@4.18.1', { stdio: 'inherit' });
+execSync('npm install -g --force @yarnpkg/cli-dist@4.18.1', { stdio: 'inherit' });
 
 const yarnJs = path.join(run('npm root -g'), '@yarnpkg/cli-dist/bin/yarn.js');
 if (!fs.existsSync(yarnJs)) {
