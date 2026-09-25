@@ -25,18 +25,7 @@ function yarnLocations() {
 }
 
 const yarnBefore = yarnLocations();
-execSync('npm install -g corepack @yarnpkg/cli-dist@4.18.1', { stdio: 'inherit' });
-
-const prepareEnv = { ...process.env, COREPACK_ENABLE_DOWNLOAD_PROMPT: '0' };
-try {
-  execSync('corepack enable', { stdio: 'inherit', env: prepareEnv });
-  execSync('corepack prepare yarn@4.18.1 --activate', {
-    stdio: 'inherit',
-    env: prepareEnv,
-  });
-} catch (error) {
-  console.log('corepack prepare atlandı:', error.message);
-}
+execSync('npm install -g @yarnpkg/cli-dist@4.18.1', { stdio: 'inherit' });
 
 const yarnJs = path.join(run('npm root -g'), '@yarnpkg/cli-dist/bin/yarn.js');
 if (!fs.existsSync(yarnJs)) {
