@@ -9,8 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "eas-build-pre-install": "node ./scripts/eas-yarn.cjs",
-    "eas-build-post-install": "node ./scripts/patch-rn-polyfills.cjs && node ./scripts/patch-expo-kotlin.cjs",
-    "postinstall": "node ./scripts/patch-rn-polyfills.cjs && node ./scripts/patch-expo-kotlin.cjs",
+    "eas-build-post-install": "node ./scripts/patch-rn-polyfills.cjs && node ./scripts/patch-expo-kotlin.cjs && node ./scripts/guard-kotlin-plugin.cjs",
+    "postinstall": "node ./scripts/patch-rn-polyfills.cjs && node ./scripts/patch-expo-kotlin.cjs && node ./scripts/guard-kotlin-plugin.cjs",
     "update:preview": "eas update --channel preview --message",
     "update:production": "eas update --channel production --message"
   },
