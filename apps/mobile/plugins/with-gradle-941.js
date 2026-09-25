@@ -20,10 +20,11 @@ function withGradle941(config) {
 
       const appGradle = path.join(root, 'app/build.gradle');
       if (fs.existsSync(appGradle)) {
-        fs.writeFileSync(
-          appGradle,
-          guardKotlinApply(fs.readFileSync(appGradle, 'utf8')),
+        const patched = guardKotlinApply(fs.readFileSync(appGradle, 'utf8')).replace(
+          /getDefaultProguardFile\(\s*(['"])proguard-android\.txt\1\s*\)/g,
+          'getDefaultProguardFile("proguard-android-optimize.txt")',
         );
+        fs.writeFileSync(appGradle, patched);
       }
       return cfg;
     },
