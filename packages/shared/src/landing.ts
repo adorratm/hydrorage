@@ -78,7 +78,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
     description:
       'HydroRage: hidrasyon takibi, sesli tehdit ve haftalık utanç karnesi. Su içmezsen küfür yersin. Güvenli mod da var.',
     canonical: `${SITE_URL}/`,
-    ogImage: `${SITE_URL}/og-image.svg`,
+    ogImage: `${SITE_URL}/og-image.png`,
     keywords:
       'hidrasyon, su hatırlatıcı, su iç, dehidrasyon, motivasyon, HydroRage',
     siteUrl: SITE_URL,
@@ -218,7 +218,7 @@ export const DEFAULT_LANDING_CONTENT_EN: LandingContent = {
     description:
       'HydroRage: hydration tracking, spoken threats, and a weekly shame report. Miss your water goal and get roasted. Safe mode available.',
     canonical: `${SITE_URL}/`,
-    ogImage: `${SITE_URL}/og-image.svg`,
+    ogImage: `${SITE_URL}/og-image.png`,
     keywords:
       'hydration, water reminder, drink water, dehydration, motivation, HydroRage',
     siteUrl: SITE_URL,
