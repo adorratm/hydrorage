@@ -66,10 +66,31 @@ function patchTree(root) {
   return patched;
 }
 
+const EXPO_PLUGIN_APPLY = `  if (!plugins.hasPlugin("kotlin-android")) {
+    plugins.apply("kotlin-android")
+  }`;
+const EXPO_PLUGIN_GUARDED = `  if (!plugins.hasPlugin("kotlin-android") && extensions.findByName("kotlin") == null) {
+    plugins.apply("kotlin-android")
+  }`;
+
+function patchExpoModulePlugin(root) {
+  const file = path.join(
+    root,
+    'expo-modules-core/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/ProjectConfiguration.kt',
+  );
+  if (!fs.existsSync(file)) return false;
+  const text = fs.readFileSync(file, 'utf8');
+  if (!text.includes(EXPO_PLUGIN_APPLY) || text.includes('findByName("kotlin")')) return false;
+  fs.writeFileSync(file, text.replace(EXPO_PLUGIN_APPLY, EXPO_PLUGIN_GUARDED));
+  console.log('guard kotlin plugin:', path.relative(process.cwd(), file));
+  return true;
+}
+
 if (require.main === module) {
   const root = path.join(__dirname, '../../..', 'node_modules');
   const count = patchTree(root);
-  if (!count) console.log('kotlin-android apply bulunamadı');
+  const expoPatched = patchExpoModulePlugin(root);
+  if (!count && !expoPatched) console.log('kotlin-android apply bulunamadı');
 }
 
 module.exports = { guardKotlinApply, patchTree };
