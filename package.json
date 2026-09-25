@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "eas-build-pre-install": "node apps/mobile/scripts/eas-yarn.cjs",
     "api": "yarn workspace @hydrorage/api start:dev",
     "api:build": "yarn workspace @hydrorage/api build",
     "mobile": "yarn workspace @hydrorage/mobile start",

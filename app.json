@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "2b597587-307d-478c-9947-4de65b8aa943"
+      }
+    },
+    "android": {
+      "package": "com.adorratm.hydrorage"
+    }
+  }
+}
