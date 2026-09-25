@@ -45,9 +45,9 @@
     "typeorm": "1.1.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^12.0.5",
+    "@nestjs/cli": "^12.0.6",
     "@nestjs/schematics": "^12.0.5",
-    "@rspack/core": "^2.2.6",
+    "@rspack/core": "^2.2.7",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.2",
     "@types/passport-jwt": "^4.0.1",

@@ -12,7 +12,7 @@ try {
 } catch {
   console.log('Yarn 1 paketi kaldırılamadı, komut yine de değiştirilecek');
 }
-execSync('npm install -g @yarnpkg/cli-dist@4.18.0', { stdio: 'inherit' });
+execSync('npm install -g @yarnpkg/cli-dist@4.18.1', { stdio: 'inherit' });
 
 const yarnJs = path.join(run('npm root -g'), '@yarnpkg/cli-dist/bin/yarn.js');
 if (!fs.existsSync(yarnJs)) {

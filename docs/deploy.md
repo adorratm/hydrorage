@@ -19,7 +19,7 @@ Eski alışkanlığına yakın akış:
 | `https://admin.hydrorage.com.tr` | Admin |
 | `https://api.hydrorage.com.tr` | API |
 
-Node **26.10.0** · Yarn **4.18.0**.
+Node **26.10.0** · Yarn **4.18.1**.
 
 ## Shared VPS edge = `ttengamesstudio-nginx`
 

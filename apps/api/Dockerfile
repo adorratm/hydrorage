@@ -4,7 +4,7 @@ WORKDIR /app
 # Node 26 Alpine ships without corepack binary
 RUN npm install -g corepack \
   && corepack enable \
-  && corepack prepare yarn@4.18.0 --activate
+  && corepack prepare yarn@4.18.1 --activate
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/shared/package.json ./packages/shared/
@@ -14,7 +14,7 @@ FROM node:26.10.0-alpine AS build
 WORKDIR /app
 RUN npm install -g corepack \
   && corepack enable \
-  && corepack prepare yarn@4.18.0 --activate
+  && corepack prepare yarn@4.18.1 --activate
 COPY --from=deps /app /app
 COPY apps/api ./apps/api
 COPY packages/shared ./packages/shared
@@ -26,7 +26,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN npm install -g corepack \
   && corepack enable \
-  && corepack prepare yarn@4.18.0 --activate
+  && corepack prepare yarn@4.18.1 --activate
 COPY --from=build /app /app
 WORKDIR /app/apps/api
 EXPOSE 3000

@@ -133,6 +133,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    './plugins/with-gradle-941.js',
   ],
   experiments: {
     typedRoutes: true,
