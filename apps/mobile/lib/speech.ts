@@ -87,7 +87,17 @@ function pickDeviceVoice(voices: DeviceVoice[], characterSlug?: string) {
   return list[hash % list.length];
 }
 
-function speakViaDevice(
+async function ensureLoudSession() {
+  if (Platform.OS === 'web') return;
+  const { setAudioModeAsync } = await import('expo-audio');
+  await setAudioModeAsync({
+    playsInSilentMode: true,
+    interruptionMode: 'doNotMix',
+    shouldPlayInBackground: true,
+  });
+}
+
+async function speakViaDevice(
   text: string,
   locale: 'tr' | 'en',
   voice: DeviceVoice,
@@ -95,6 +105,7 @@ function speakViaDevice(
   volume = 1,
 ) {
   const style = DEVICE_STYLE[characterSlug ?? ''] ?? { pitch: 1, rate: 1 };
+  await ensureLoudSession();
   return new Promise<void>((resolve, reject) => {
     Speech.speak(text, {
       voice: voice.identifier,
@@ -187,12 +198,8 @@ function playWebMp3(base64: string, volume = 1): Promise<void> {
 }
 
 async function playNativeMp3(base64: string, volume = 1): Promise<void> {
-  const { createAudioPlayer, setAudioModeAsync } = await import('expo-audio');
-  await setAudioModeAsync({
-    playsInSilentMode: true,
-    interruptionMode: 'duckOthers',
-    shouldPlayInBackground: true,
-  });
+  const { createAudioPlayer } = await import('expo-audio');
+  await ensureLoudSession();
   await stopCurrent();
 
   const uri = `data:audio/mpeg;base64,${base64}`;
@@ -289,17 +296,13 @@ async function playYameteRecording(volume: number, ticket: number) {
   }
 
   const { Asset } = await import('expo-asset');
-  const { createAudioPlayer, setAudioModeAsync } = await import('expo-audio');
+  const { createAudioPlayer } = await import('expo-audio');
+  await ensureLoudSession();
   const asset = Asset.fromModule(yameteTail);
   if (!asset.downloaded) await asset.downloadAsync();
   const uri = asset.localUri ?? asset.uri;
   if (!uri || ticket !== playTicket) return;
 
-  await setAudioModeAsync({
-    playsInSilentMode: true,
-    interruptionMode: 'duckOthers',
-    shouldPlayInBackground: true,
-  });
   const player = createAudioPlayer({ uri });
   try {
     player.volume = Math.min(1, Math.max(0, volume));

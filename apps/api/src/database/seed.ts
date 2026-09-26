@@ -670,6 +670,137 @@ async function main() {
       profanityLevel: N,
       characterId: japon.id,
     },
+
+    {
+      text: '{{name}}, telefonun yüzüne yapışmış, bardak ise öksüz. Kalk, o suyu gırtlağına kadar indir!',
+      profanityLevel: U,
+      characterId: bro.id,
+    },
+    {
+      text: 'Kurumuş üzüm gibi gezme lan. +{{debtMl}} ml borcun var, mahalle bunu affetmez.',
+      profanityLevel: U,
+      characterId: bro.id,
+    },
+    {
+      text: 'Set atıp suyu es geçmek hile. Hücrelerin iflas etti {{name}}. 500 ml, bahanen yok!',
+      profanityLevel: U,
+      characterId: coach.id,
+    },
+    {
+      text: 'Aynada kas arıyorsun, bardakta su yok. Önce iç, sonra poz ver salak.',
+      profanityLevel: MIL,
+      characterId: coach.id,
+    },
+    {
+      text: 'Evlat, ben seni susuz büyütmedim. O bardağı bitirmeden odana dönme {{name}}!',
+      profanityLevel: U,
+      characterId: mom.id,
+    },
+    {
+      text: 'Komşu sormadan sen söyle: niye içmiyorsun? +{{debtMl}} ml eksik, ayıp!',
+      profanityLevel: N,
+      characterId: mom.id,
+    },
+    {
+      text: '{{name}}, “sonra içerim” bir strateji değil, erteleme. 300 ml. Toplantıdan önce.',
+      profanityLevel: M,
+      characterId: corp.id,
+    },
+    {
+      text: 'Performans görüşmesinde “su içemedim” deme. Bütçeyi değil, bardağı doldur.',
+      profanityLevel: N,
+      characterId: corp.id,
+    },
+    {
+      text: 'Gölgen bile senden su dileniyor {{name}}. +{{debtMl}} ml. Öde, yoksa gece uzar.',
+      profanityLevel: U,
+      characterId: drac.id,
+    },
+    {
+      text: 'Tabutumdan bile duyuyorum o boş bardağın sesini. İç. Şimdi. Utan.',
+      profanityLevel: N,
+      characterId: drac.id,
+    },
+    {
+      text: 'Matara boşsa sen de boşsun {{name}}. Doldur, dik, rapor ver. İtiraz yok!',
+      profanityLevel: U,
+      characterId: cavus.id,
+    },
+    {
+      text: 'Üçe kadar sayıyorum. Bardak boşalacak. Bir. Gevşek durma!',
+      profanityLevel: MIL,
+      characterId: cavus.id,
+    },
+    {
+      text: 'Bu güzergâh muslukta biter {{name}}. Kuruyarak yolcu taşımam. İç!',
+      profanityLevel: U,
+      characterId: taxi.id,
+    },
+    {
+      text: 'Bahşişi böbreğine ver: +{{debtMl}} ml. Pazarlık yok, kırmızı ışıkta bile içilir.',
+      profanityLevel: N,
+      characterId: taxi.id,
+    },
+    {
+      text: 'Beni değil, susuzluğu terk et {{name}}. 300 ml. Ego’yu kapıda bırak.',
+      profanityLevel: U,
+      characterId: ex.id,
+    },
+    {
+      text: 'Story atmayı biliyorsun, bardağı kaldırmayı unutmuşsun. Klasik rezillik.',
+      profanityLevel: M,
+      characterId: ex.id,
+    },
+    {
+      text: 'Baş ağrın dedikodu yapıyor: susuzsun {{name}}. Reçete basit, iç. +{{debtMl}} ml.',
+      profanityLevel: U,
+      characterId: doc.id,
+    },
+    {
+      text: 'Serum sırasına girmeden önce bardağı bitir. Protokol bu, inat değil.',
+      profanityLevel: N,
+      characterId: doc.id,
+    },
+    {
+      text: 'Son tur. Bardak hâlâ doluysa kapıyı çalarım {{name}}. İç, nöbet bitsin.',
+      profanityLevel: U,
+      characterId: night.id,
+    },
+    {
+      text: 'Bina suskun, böbreklerin değil. +{{debtMl}} ml. Sessizce iç, yatağa dön.',
+      profanityLevel: N,
+      characterId: night.id,
+    },
+    {
+      text: '{{name}}, acele etme. Bardağı dudağına koy, yavaş bitir. Boş bardak beni sinir eder.',
+      profanityLevel: U,
+      characterId: sultry.id,
+    },
+    {
+      text: 'Kurumuşsun. Bir uzun yudum, sonra bir tane daha. Teşekkürü sonra düşünürsün.',
+      profanityLevel: N,
+      characterId: sultry.id,
+    },
+    {
+      text: 'Ay pazarlık etmez {{name}}. Ben de etmem. +{{debtMl}} ml. Bir yudum, yoksa gece uzar.',
+      profanityLevel: U,
+      characterId: gothic.id,
+    },
+    {
+      text: 'Susuzların listesinde adın var. O listeden inmek için iç.',
+      profanityLevel: N,
+      characterId: gothic.id,
+    },
+    {
+      text: '{{name}}, lütfen sesimi yükseltme. Bardağı bitir. やめてください。',
+      profanityLevel: U,
+      characterId: japon.id,
+    },
+    {
+      text: 'Susuzluk kabalık. Bedenine nazik ol, bir yudum al. やめてください。',
+      profanityLevel: N,
+      characterId: japon.id,
+    },
   ];
 
   const ordered = interleaveByCharacter(templates);

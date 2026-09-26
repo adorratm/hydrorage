@@ -25,9 +25,10 @@ export function threatFallback(
   plus18: boolean,
   locale: AppLocale,
   characterSlug?: string | null,
+  salt?: string,
 ): string {
   if (characterSlug) {
-    return sampleLineForCharacter(characterSlug, plus18, locale);
+    return sampleLineForCharacter(characterSlug, plus18, locale, salt);
   }
   return t(
     locale,

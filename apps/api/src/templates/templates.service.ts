@@ -54,6 +54,7 @@ export class TemplatesService {
           plus18,
           locale,
           row.character?.slug ?? defaultSlug,
+          row.id,
         ),
         character: char,
       };

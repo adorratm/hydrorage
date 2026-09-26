@@ -383,62 +383,218 @@ export const CHARACTER_SAFE_SAMPLE_LINES: Record<string, string> = {
     'Lütfen bir bardak su iç. Şimdi.',
 };
 
-export const CHARACTER_SAMPLE_LINES_EN: Record<string, string> = {
-  [CHARACTER_SLUGS.NEIGHBOR_BRO]:
-    'Get up and drink that water! Your kidneys are drying out!',
-  [CHARACTER_SLUGS.FITNESS_COACH]:
-    'Your muscles want water — dry muscle is dead muscle! Chug 500 ml now!',
-  [CHARACTER_SLUGS.ANGRY_MOM]:
-    'Didn’t I tell you to drink? Your kidneys will make stones — have some shame!',
-  [CHARACTER_SLUGS.CORPORATE]:
-    'Q3 hydration KPI is red. Action item: 300 ml water, deadline now.',
-  [CHARACTER_SLUGS.DRACULA]:
-    'It isn’t blood you’re missing — it’s water. Leave that glass empty and I’ll find you at night.',
-  [CHARACTER_SLUGS.SERGEANT]:
-    'ATTENTION! Order: 300 ml water. No objections. Execute!',
-  [CHARACTER_SLUGS.TAXI]:
-    'You’re stuck like traffic from dehydration! Horn: DRINK WATER!',
-  [CHARACTER_SLUGS.TOXIC_EX]:
-    'Still the same lazy you… Can’t even drink water. Surprised? No.',
-  [CHARACTER_SLUGS.ER_DOCTOR]:
-    'Clinical note: dehydrated. Treatment: oral water, 500 ml, immediately.',
-  [CHARACTER_SLUGS.NIGHT_GUARD]:
-    '03:00. Night watch: you owe water. Get up, sip, sleep again.',
-  [CHARACTER_SLUGS.SULTRY]:
-    'Come closer. Put the glass to your lips and sip slowly.',
-  [CHARACTER_SLUGS.GOTHIC_LADY]:
-    'The candle went out. Your water debt waits in the dark. One sip, or the night stretches.',
-  [CHARACTER_SLUGS.JAPANESE]:
-    'Please drink water. Do not leave the glass empty. やめてください。',
+export const CHARACTER_SAMPLE_LINES_EN: Record<string, string[]> = {
+  [CHARACTER_SLUGS.NEIGHBOR_BRO]: [
+    'Get up and drink that water, {{name}}! Your kidneys are cracking like cheap plaster!',
+    'Three hours, not one sip. What the hell are you doing? Tip that glass back!',
+    'You sip coffee like a coward and won’t touch water. Two glasses. Now.',
+    'Drop the phone, {{name}}. Drink until that bottle files a complaint.',
+    'You’re {{debtMl}} ml in debt and still parked there. Pay up, you dried-out idiot.',
+    'Orange piss is not a lifestyle. Drink before your kidney sends a lawyer.',
+    'Kitchen. Tap. Mouth. No speech, no excuse, you walking raisin.',
+    'The block doesn’t respect a man who won’t drink. Move, {{name}}.',
+  ],
+  [CHARACTER_SLUGS.FITNESS_COACH]: [
+    'Dry muscle is dead muscle, {{name}}! Chug 500 ml or that set was cosplay!',
+    'Five coffees, zero water. That’s not grit, that’s stupidity. You owe {{debtMl}} ml.',
+    'Order: 300 ml. Mouth shut. Drink until your gut remembers it has a job.',
+    'A protein shake without water is expensive dust. 500 ml. Immediately.',
+    'Rest day is not a dehydration holiday. Four hundred ml. Move.',
+    'You want a pump and your cells are a desert. No water, no muscle. Drink.',
+    'Your form is garbage if your blood is jam. Glass. Now. {{name}}.',
+    'Sets need water. You skip both. Fix it, you lazy rep.',
+  ],
+  [CHARACTER_SLUGS.ANGRY_MOM]: [
+    'Didn’t I tell you to drink? Your kidneys will throw stones and then you’ll cry, {{name}}!',
+    'What kind of child is too proud to lift a glass? Shame. Actual shame.',
+    'The neighbor’s kid finished a liter. You’re still glowing into a screen. Disgrace.',
+    'Who nurses you when you fold? Not me, if you won’t drink. Now.',
+    'I cooked. You won’t even touch water? Pick up that glass, {{name}}.',
+    'Don’t you dare sleep dry. You’re {{debtMl}} ml short, you stubborn thing.',
+    'I will stand in this kitchen until that glass is empty. Drink.',
+    'I did not raise a raisin. Water. This minute.',
+  ],
+  [CHARACTER_SLUGS.CORPORATE]: [
+    '{{name}}, this quarter’s hydration number is a crime scene. 300 ml. Deadline: now.',
+    'Walking into the review dehydrated is a career choice. A stupid one. Drink.',
+    'Coffee is not a strategy. The bottle is your actual job. {{debtMl}} ml overdue.',
+    'Performance note: a dry employee is a slow employee. Align. Drink.',
+    'Idle in chat, empty glass. Clear the blocker: 250 ml.',
+    'Offsite policy: if you faint, we cut the budget. Drink. That’s the rule, {{name}}.',
+    'I will write “cannot operate a glass” in your review. Don’t dare me.',
+    'Synergy is fake. Thirst is not. Handle it.',
+  ],
+  [CHARACTER_SLUGS.DRACULA]: [
+    'It isn’t blood you’re missing, {{name}}. Leave that glass empty and I will find you.',
+    'I whisper from the dark: thirst is a small death. Drink. Now.',
+    'Even in the coffin I count your {{debtMl}} ml debt. Pay it.',
+    'Moonlight on dried meat. How pathetic. Drink, or your shadow leaves first.',
+    'Curse your laziness. Even I want water tonight. You will drink.',
+    'Midnight: your cells are screaming. 400 ml, or a long drought.',
+    'I have emptied kingdoms. You cannot finish a glass. Embarrassing, {{name}}.',
+    'The night keeps receipts. Your tab is water. Settle it.',
+  ],
+  [CHARACTER_SLUGS.SERGEANT]: [
+    'ATTENTION! 300 ml. Backtalk gets a boot. Execute, {{name}}!',
+    'A soldier does not fight dry! What kind of recruit are you? Drain it!',
+    'Shift change: no water, no mercy. {{debtMl}} ml. Now!',
+    'Eyes front. Drink. The chain of command does not bargain.',
+    'Empty canteen, empty soldier. Fill it. Drink it. Finished.',
+    'That posture is a joke and the glass is a desert. Fix both.',
+    'I count to three. The glass is empty. One.',
+    'Hydration is kit, not a hobby. Carry it. Use it. {{name}}.',
+  ],
+  [CHARACTER_SLUGS.TAXI]: [
+    'You’re jammed like rush hour from thirst! Horn’s down: DRINK, {{name}}!',
+    'Passenger wants water, your glass is a ghost. Meter’s running. {{debtMl}} ml fare.',
+    'A red light is long enough to drink. Why are you still waiting?',
+    'Lane violation: dehydration. Fine is 400 ml. No haggling.',
+    'Air con on, water forgotten. You’re drying out in my back seat. Glass!',
+    'I don’t drive corpses. Sip or get out, {{name}}.',
+    'This route ends at the tap. Move the car that is your body.',
+    'You tip strangers and starve your kidneys. Brilliant priorities.',
+  ],
+  [CHARACTER_SLUGS.TOXIC_EX]: [
+    'Still the same lazy {{name}}. Can’t even drink water. Shocked? Please.',
+    'So this is the upgrade. Dry and pathetic. At least fill the glass.',
+    'I left and I still hydrated. You’re {{debtMl}} ml behind. Textbook you.',
+    'You can post a story and you can’t lift a glass. Drink. It’s humiliating.',
+    'Dump the thirst the way you dumped me. 300 ml. Now.',
+    'Skip the ego. Drink. Save the kidneys this time, not the image.',
+    'I used to nag. Now an app does. You’re still failing. Impressive.',
+    'One glass. Even you might survive that. Maybe.',
+  ],
+  [CHARACTER_SLUGS.ER_DOCTOR]: [
+    'Chart: {{name}} is dry. Treatment is 500 ml by mouth. Not a suggestion.',
+    'Dark urine is a siren. Stone risk is climbing. Drink, or meet the scanner.',
+    'You want a drip, {{name}}? Earn it with a glass. {{debtMl}} ml behind.',
+    'The ER is packed. Don’t tour it for pride. Drink, finish, repeat.',
+    'Since you need it shouted: drink the water. That’s the science. Sit down.',
+    'Headache, fog, foul mood. Diagnosis: you. Prescription: water.',
+    'I don’t keep a bed for someone who won’t sip. Drink before I write “stubborn”.',
+    'Your vitals are gossiping. They’re saying thirst. Correct the rumor.',
+  ],
+  [CHARACTER_SLUGS.NIGHT_GUARD]: [
+    '03:00. I count your water debt while you sleep, {{name}}. Get up and drink.',
+    'Lamp on. Glass empty. That’s neglect. 250 ml. Quietly. Now.',
+    'You’re {{debtMl}} ml short of dawn. Night shift doesn’t pardon. Water.',
+    'You’re thirsty inside the dream. Wake, sip, go back under.',
+    'Door’s locked. The glass should be open. I’ll wait until morning.',
+    'I see the untouched bottle. Don’t insult the round.',
+    'The building is quiet. Your kidneys are not. Sip.',
+    'Last lap: if that glass is still full, I knock. {{name}}.',
+  ],
+  [CHARACTER_SLUGS.SULTRY]: [
+    'Come here, {{name}}. Glass to your mouth. Finish it slowly.',
+    'An empty glass makes me mean. Fill it. Let it touch your lip. You owe {{debtMl}} ml.',
+    'Let it run off your mouth. Slow. I want to hear the swallow.',
+    'You’re dried out. Take it. Sip. Offer it back.',
+    'Don’t rush. I like the obeying more than the speed. Drink.',
+    'One long pull. Then another. You can thank me after, {{name}}.',
+    'Thirst looks desperate on you. Fix your face. Drink.',
+    'I don’t beg. The glass does. Listen.',
+  ],
+  [CHARACTER_SLUGS.GOTHIC_LADY]: [
+    'The candle died, {{name}}. Your debt sits in the dark. One sip, or the night stretches.',
+    'The grave is quiet. The glass is not. {{debtMl}} ml short. Drink, or the shadow dries.',
+    'I keep a list of the thirsty. Your name is on it. Get off.',
+    'Black cup, clear water, I don’t care which. Drink before the hour turns.',
+    'Your pulse is a dry little drum. Wet it.',
+    'The moon doesn’t bargain, {{name}}. Neither do I. Sip.',
+    'Roses die prettier than a person who skips this glass.',
+    'Come out of the dark with a wet mouth. That’s the whole rite.',
+  ],
+  [CHARACTER_SLUGS.JAPANESE]: [
+    'Please drink, {{name}}. Do not leave the glass empty. やめてください。',
+    'The debt is {{debtMl}} ml. Please close it. やめてください。',
+    'I am asking softly. The glass is not. Drink.',
+    'One sip, then the room may be quiet. やめてください。',
+    'Please. I do not want to raise my voice. Drink the water.',
+    'The bottle is watching. So am I. Please finish it.',
+    '{{name}}, a small glass. Now. Then you may rest. やめてください。',
+    'Thirst is rude. Please be polite to your body.',
+  ],
 };
 
-export const CHARACTER_SAFE_SAMPLE_LINES_EN: Record<string, string> = {
-  [CHARACTER_SLUGS.NEIGHBOR_BRO]:
-    'Time to drink water. You’re behind on your hydration goal.',
-  [CHARACTER_SLUGS.FITNESS_COACH]:
-    'Your muscles are waiting on water. Drink 500 ml — needed for a solid workout.',
-  [CHARACTER_SLUGS.ANGRY_MOM]:
-    'I told you: drink water. Please have a glass for your kidneys.',
-  [CHARACTER_SLUGS.CORPORATE]:
-    'Hydration KPI turned yellow. Action: 300 ml water, deadline now.',
-  [CHARACTER_SLUGS.DRACULA]:
-    'It isn’t blood — you’re low on water. Take a sip; the night goes easier.',
-  [CHARACTER_SLUGS.SERGEANT]:
-    'ATTENTION! Order: 300 ml water. Execute with discipline.',
-  [CHARACTER_SLUGS.TAXI]:
-    'If dehydration has you stuck, drink a glass of water.',
-  [CHARACTER_SLUGS.TOXIC_EX]:
-    'Small reminder: don’t put off drinking water. One glass is enough.',
-  [CHARACTER_SLUGS.ER_DOCTOR]:
-    'Clinical note: mild dehydration risk. Treatment: oral water, 500 ml.',
-  [CHARACTER_SLUGS.NIGHT_GUARD]:
-    '03:00. You owe water. Get up, take a sip, sleep again.',
-  [CHARACTER_SLUGS.SULTRY]:
+export const CHARACTER_SAFE_SAMPLE_LINES_EN: Record<string, string[]> = {
+  [CHARACTER_SLUGS.NEIGHBOR_BRO]: [
+    '{{name}}, time to drink. You’re behind on the goal.',
+    'Short reminder: one glass. Your kidneys will notice.',
+    'You’re {{debtMl}} ml back. Please drink now.',
+    'Phone down, water up. Then you can scroll.',
+  ],
+  [CHARACTER_SLUGS.FITNESS_COACH]: [
+    'Muscles are waiting on water. 500 ml, or the session is sloppy.',
+    'Rest day still needs a drink. 400 ml.',
+    '{{name}}, dry training is wasted training. Sip.',
+    'Between sets: water. After sets: water. Start now.',
+  ],
+  [CHARACTER_SLUGS.ANGRY_MOM]: [
+    'I told you: drink. One glass, for the kidneys.',
+    '{{name}}, don’t go hours without water. A glass is enough.',
+    'You’ll feel better after you drink. Please, now.',
+    'I’m not nagging. I’m reminding. The glass is right there.',
+  ],
+  [CHARACTER_SLUGS.CORPORATE]: [
+    'Hydration slipped to yellow. Action: 300 ml, deadline now.',
+    '{{name}}, coffee is not the plan. Water is.',
+    '{{debtMl}} ml overdue. Clear it before the next meeting.',
+    'Owner of the bottle: you. Status: empty. Fix.',
+  ],
+  [CHARACTER_SLUGS.DRACULA]: [
+    'It isn’t blood. You’re low on water. Sip, and the night eases.',
+    '{{name}}, the glass is a small lantern. Light it.',
+    'You owe {{debtMl}} ml before dawn. Pay gently.',
+    'Even the dark prefers you hydrated. Drink.',
+  ],
+  [CHARACTER_SLUGS.SERGEANT]: [
+    'ATTENTION. Order: 300 ml. Execute with discipline.',
+    '{{name}}, canteen check. Fill it. Drink it.',
+    'No debate. Water, then you may continue.',
+    'Shift note: {{debtMl}} ml outstanding. Clear it.',
+  ],
+  [CHARACTER_SLUGS.TAXI]: [
+    'If thirst has you stuck, drink a glass.',
+    '{{name}}, the meter on your body is running. Water.',
+    'Red light rule: one sip before you move.',
+    'You’re {{debtMl}} ml off route. Correct it.',
+  ],
+  [CHARACTER_SLUGS.TOXIC_EX]: [
+    'Small reminder: don’t postpone the glass. One is enough.',
+    '{{name}}, you can do this one ordinary thing. Drink.',
+    '{{debtMl}} ml behind. Catch up without the drama.',
+    'Future you is less cranky if you drink now.',
+  ],
+  [CHARACTER_SLUGS.ER_DOCTOR]: [
+    'Note: mild dehydration risk. Treatment: 500 ml by mouth.',
+    '{{name}}, dark urine means drink sooner, not later.',
+    'Start with a glass. {{debtMl}} ml still open.',
+    'Simple protocol: drink, finish, carry on.',
+  ],
+  [CHARACTER_SLUGS.NIGHT_GUARD]: [
+    '03:00. You owe water. Get up, sip, sleep again.',
+    '{{name}}, the lamp is on and the glass is full. Swap that.',
+    '{{debtMl}} ml before morning. Quiet sip.',
+    'Last round. Please drink.',
+  ],
+  [CHARACTER_SLUGS.SULTRY]: [
     'A glass of water. Drink it slowly.',
-  [CHARACTER_SLUGS.GOTHIC_LADY]:
-    'The night does not forget a water debt. Take one sip.',
-  [CHARACTER_SLUGS.JAPANESE]:
+    '{{name}}, bring it to your mouth. No rush.',
+    'Empty glass, restless night. Fill it.',
+    'One slow sip. Then another.',
+  ],
+  [CHARACTER_SLUGS.GOTHIC_LADY]: [
+    'The night keeps a water debt. Take one sip.',
+    '{{name}}, the candle can wait. The glass cannot.',
+    '{{debtMl}} ml in the dark. Drink, then rest.',
+    'A small sip keeps the hour kind.',
+  ],
+  [CHARACTER_SLUGS.JAPANESE]: [
     'Please drink a glass of water. Now.',
+    '{{name}}, please don’t leave it empty.',
+    'A small sip is enough to start. Please.',
+    'You owe {{debtMl}} ml. Please begin.',
+  ],
 };
 
 export const JAPANESE_TAIL = 'やめてください。';
@@ -468,10 +624,21 @@ export function withRandomJapaneseTail(
   return `${base}. ${JAPANESE_TAIL}`;
 }
 
+function pickIndexedLine(lines: string[], salt?: string): string {
+  if (!salt) return lines[Math.floor(Math.random() * lines.length)] ?? lines[0];
+  let hash = 2166136261;
+  for (let i = 0; i < salt.length; i++) {
+    hash ^= salt.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return lines[(hash >>> 0) % lines.length] ?? lines[0];
+}
+
 export function sampleLineForCharacter(
   slug: string | null | undefined,
   plus18Mode = true,
   locale: AppLocale = 'tr',
+  salt?: string,
 ): string {
   const key = slug ?? '';
   const pool =
@@ -482,13 +649,12 @@ export function sampleLineForCharacter(
       : plus18Mode
         ? CHARACTER_SAMPLE_LINES
         : CHARACTER_SAFE_SAMPLE_LINES;
-  return (
-    pool[key] ??
-    t(
-      locale,
-      plus18Mode ? 'tone.fallbackPlus18' : 'tone.fallbackSafe',
-    )
-  );
+  const lines = pool[key];
+  const list = Array.isArray(lines) ? lines : lines ? [lines] : [];
+  if (!list.length) {
+    return t(locale, plus18Mode ? 'tone.fallbackPlus18' : 'tone.fallbackSafe');
+  }
+  return pickIndexedLine(list, salt);
 }
 
 

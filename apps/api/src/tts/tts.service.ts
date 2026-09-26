@@ -427,7 +427,7 @@ export class TtsService {
       voice: voice.edgeVoice,
       rate: voice.rate,
       pitch: voice.pitch,
-      volume: voice.volume,
+      volume: '+100%',
     });
     const parts: Buffer[] = [];
     for await (const chunk of communicate.stream()) {
@@ -447,8 +447,7 @@ export class TtsService {
     voice: VoiceProfile,
     languageCode: string,
   ): Promise<Buffer> {
-    const loud = voice.yell === 'yell' || voice.yell === 'bark';
-    const ssml = `<speak><prosody rate="${Math.round(voice.googleRate * 100)}%" pitch="${voice.googlePitch >= 0 ? '+' : ''}${voice.googlePitch}st" volume="${loud ? '+8dB' : '+4dB'}">${escapeXml(text)}</prosody></speak>`;
+    const ssml = `<speak><prosody rate="${Math.round(voice.googleRate * 100)}%" pitch="${voice.googlePitch >= 0 ? '+' : ''}${voice.googlePitch}st" volume="+16dB">${escapeXml(text)}</prosody></speak>`;
 
     const res = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
@@ -465,7 +464,7 @@ export class TtsService {
             audioEncoding: 'MP3',
             speakingRate: voice.googleRate,
             pitch: voice.googlePitch,
-            volumeGainDb: loud ? 8 : 4,
+            volumeGainDb: 16,
           },
         }),
       },
