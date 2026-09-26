@@ -184,7 +184,18 @@ function AuthProviderWithGoogle({ children }: { children: React.ReactNode }) {
       throw new Error('Google girişi henüz hazır değil');
     }
 
-    const result = await googlePromptAsync();
+    const result = await googlePromptAsync(
+      Platform.OS === 'android' ? { showInRecents: true } : undefined,
+    );
+    if (result.type === 'error') {
+      const detail =
+        result.error?.message ||
+        result.params.error_description ||
+        result.params.error ||
+        result.errorCode ||
+        'error';
+      throw new Error(`Google girişi başarısız: ${detail}`);
+    }
     if (result.type !== 'success') {
       throw new Error('Google girişi iptal edildi');
     }

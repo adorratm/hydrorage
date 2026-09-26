@@ -67,6 +67,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         ],
         category: ['BROWSABLE', 'DEFAULT'],
       },
+      {
+        action: 'VIEW',
+        data: [{ scheme: 'com.hydrorage.app' }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
     ],
   },
   web: {
