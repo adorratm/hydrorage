@@ -81,8 +81,10 @@ for i in $(seq 1 "$TRIES"); do
   sleep 3
 done
 
-echo "==> Running migrations (prebuilt image, no --build)"
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm --no-build migrate
+echo "==> Running migrations (prebuilt image; compose run has no --no-build flag)"
+# Do NOT pass --no-build here — Compose v2 `run` rejects it (exit 1 → 502 deploy).
+# Image already tagged by pull-prebuilt.sh; omit --build so run won't rebuild.
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm migrate
 
 echo "==> Switching nginx upstream → api_${NEW}"
 mkdir -p docker/nginx/conf.d

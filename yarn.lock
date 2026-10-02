@@ -4275,7 +4275,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.12.1":
+"axios@npm:1.20.0":
   version: 1.20.0
   resolution: "axios@npm:1.20.0"
   dependencies:
@@ -4530,7 +4530,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^5.0.8":
+"brace-expansion@npm:5.0.12":
   version: 5.0.12
   resolution: "brace-expansion@npm:5.0.12"
   dependencies:
@@ -5480,9 +5480,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"engine.io@npm:~6.6.0":
-  version: 6.6.10
-  resolution: "engine.io@npm:6.6.10"
+"engine.io@npm:6.6.11":
+  version: 6.6.11
+  resolution: "engine.io@npm:6.6.11"
   dependencies:
     "@types/cors": "npm:^2.8.12"
     "@types/node": "npm:>=10.0.0"
@@ -5493,7 +5493,7 @@ __metadata:
     debug: "npm:~4.4.1"
     engine.io-parser: "npm:~5.2.1"
     ws: "npm:~8.21.0"
-  checksum: 10c0/4556e475c6b07fa8808c8286d0326f080d4c002b0367f8e24117a3a127c85aba06ff7100eb389139d730c97137813b280ae2d1c045f08afc135eed3108ad6c38
+  checksum: 10c0/b15b395dbbb8ea98942786f738794d2c2a38b9aa79d2d0eb861e26e20a9ac27beaf178e5bcf9b725bc85625748f7eb66158407932c25b89ef41e783bdbf22bc6
   languageName: node
   linkType: hard
 
@@ -6385,7 +6385,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-uri@npm:^3.0.1":
+"fast-uri@npm:3.1.8":
   version: 3.1.8
   resolution: "fast-uri@npm:3.1.8"
   checksum: 10c0/c9c47860a7f9110176d94bb30a02942182f0bfc8d6780e9702f320336dc2dadb83b1d9879cceaf8d4b439642d1ec6d78c317cb808ab155455551bd5d9d7c22d8
@@ -7180,7 +7180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.1.0":
+"js-yaml@npm:4.3.2":
   version: 4.3.2
   resolution: "js-yaml@npm:4.3.2"
   dependencies:
@@ -8438,10 +8438,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-forge@npm:^1.3.3":
+"node-forge@npm:1.4.0":
   version: 1.4.0
   resolution: "node-forge@npm:1.4.0"
   checksum: 10c0/67330a5f1f95257a4c8a93b7d555abe87b5f15e350123aa396c97a21a8ca94f9c6549008eb2c73668a91e0d7e3a905785acbd8f8bd0751c29401292011f8f8e1
+  languageName: node
+  linkType: hard
+
+"node-forge@patch:node-forge@npm%3A1.4.0#~/.yarn/patches/node-forge-npm-1.4.0-646822c506.patch":
+  version: 1.4.0
+  resolution: "node-forge@patch:node-forge@npm%3A1.4.0#~/.yarn/patches/node-forge-npm-1.4.0-646822c506.patch::version=1.4.0&hash=8a1af0"
+  checksum: 10c0/3298bf82c2e3de22fcacaa509b038aec0a5b9310d05c0ffd501e2c7f5076fb6523f8af4633b75ced97039040f6e8144da2f31a8b82ead59e66d77edce7220e0f
   languageName: node
   linkType: hard
 
@@ -10643,10 +10650,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^8.4.1":
-  version: 8.10.2
-  resolution: "undici@npm:8.10.2"
-  checksum: 10c0/66d7fc69149207cab570d6abbc9e965b6afe1ae889a7d46945b431165c973d6a56f3dd8b70a856e7ae1e550b6366a1cde6f06e68640587f0dadca38de72995ee
+"undici@npm:8.11.2":
+  version: 8.11.2
+  resolution: "undici@npm:8.11.2"
+  checksum: 10c0/106f6991178fb7562fd90cdec7993c5f807a9428682306091f0c4b27fc474ec291f868e29972c6252988bf061ad193df943b3b99e775be157a28d92bbb95699d
   languageName: node
   linkType: hard
 

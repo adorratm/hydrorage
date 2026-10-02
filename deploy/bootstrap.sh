@@ -55,7 +55,8 @@ else
 fi
 
 echo "==> Migrate + seed"
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm --no-build migrate
+# Compose v2 `run` does not accept --no-build; image must already exist (pull or prior build).
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm migrate
 
 echo "==> Start api_blue + web + admin + nginx"
 IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue up -d --no-build api_blue web admin nginx
