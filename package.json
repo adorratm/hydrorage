@@ -42,7 +42,7 @@
     "js-yaml@npm:^4.1.0": "4.3.2",
     "ip-address": "10.7.3",
     "multer": "2.4.0",
-    "node-forge@npm:^1.3.3": "patch:node-forge@npm%3A1.4.0#~/.yarn/patches/node-forge-npm-1.4.0-646822c506.patch"
+    "node-forge": "portal:./.yarn/vendor/node-forge"
   },
   "volta": {
     "node": "26.10.0",

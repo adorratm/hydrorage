@@ -8438,19 +8438,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-forge@npm:1.4.0":
-  version: 1.4.0
-  resolution: "node-forge@npm:1.4.0"
-  checksum: 10c0/67330a5f1f95257a4c8a93b7d555abe87b5f15e350123aa396c97a21a8ca94f9c6549008eb2c73668a91e0d7e3a905785acbd8f8bd0751c29401292011f8f8e1
+"node-forge@portal:./.yarn/vendor/node-forge::locator=hydrorage%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "node-forge@portal:./.yarn/vendor/node-forge::locator=hydrorage%40workspace%3A."
   languageName: node
-  linkType: hard
-
-"node-forge@patch:node-forge@npm%3A1.4.0#~/.yarn/patches/node-forge-npm-1.4.0-646822c506.patch":
-  version: 1.4.0
-  resolution: "node-forge@patch:node-forge@npm%3A1.4.0#~/.yarn/patches/node-forge-npm-1.4.0-646822c506.patch::version=1.4.0&hash=8a1af0"
-  checksum: 10c0/3298bf82c2e3de22fcacaa509b038aec0a5b9310d05c0ffd501e2c7f5076fb6523f8af4633b75ced97039040f6e8144da2f31a8b82ead59e66d77edce7220e0f
-  languageName: node
-  linkType: hard
+  linkType: soft
 
 "node-gyp-build-optional-packages@npm:5.2.2":
   version: 5.2.2
