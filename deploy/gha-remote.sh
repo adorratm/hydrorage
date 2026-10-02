@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 # Invoked by GitHub Actions over SSH after git reset --hard.
+# Prefer registry images (HYDRORAGE_USE_REGISTRY=1); never build on VPS when set.
 set -euo pipefail
 
 cd /opt/hydrorage
+
+DEPLOY_LOCK="${DEPLOY_LOCK:-/var/lock/hetzner-site-deploy.lock}"
+mkdir -p "$(dirname "$DEPLOY_LOCK")"
+exec 9>"$DEPLOY_LOCK"
+echo "==> waiting for shared deploy lock ($DEPLOY_LOCK)"
+if ! flock -w 3600 9; then
+  echo "ERROR: another site deploy still holds $DEPLOY_LOCK" >&2
+  exit 1
+fi
+echo "==> acquired deploy lock"
 
 echo "==> normalizing deploy/*.sh"
 for f in deploy/*.sh; do
@@ -19,13 +30,22 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+IMAGE_TAG="${IMAGE_TAG:-local}"
+export IMAGE_TAG
+export HYDRORAGE_IMAGE_PREFIX="${HYDRORAGE_IMAGE_PREFIX:-ghcr.io/adorratm/hydrorage}"
+
+if [[ "${HYDRORAGE_USE_REGISTRY:-0}" == "1" ]]; then
+  echo "==> registry mode (pull only, no VPS build)"
+  bash deploy/pull-prebuilt.sh
+fi
+
 if [ -f ACTIVE_COLOR ]; then
   ACTIVE="$(tr -d '[:space:]\r' < ACTIVE_COLOR)"
-  echo "==> zero-downtime (active=${ACTIVE})"
-  bash deploy/zero-downtime.sh local
+  echo "==> zero-downtime (active=${ACTIVE} tag=${IMAGE_TAG})"
+  bash deploy/zero-downtime.sh "$IMAGE_TAG"
 else
-  echo "==> bootstrap"
-  bash deploy/bootstrap.sh local
+  echo "==> bootstrap (tag=${IMAGE_TAG})"
+  bash deploy/bootstrap.sh "$IMAGE_TAG"
 fi
 
 echo "==> wire into ttengamesstudio-nginx edge"

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# First-time bootstrap — builds on the VPS (no GHCR).
+# First-time bootstrap.
+# With HYDRORAGE_USE_REGISTRY=1: pull-only. Otherwise sequential local build (last resort).
 set -euo pipefail
 
 ROOT_DIR="${ROOT_DIR:-/opt/hydrorage}"
@@ -7,6 +8,7 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 ENV_FILE="${ENV_FILE:-.env}"
 COLOR_FILE="${COLOR_FILE:-$ROOT_DIR/ACTIVE_COLOR}"
 IMAGE_TAG="${1:-${IMAGE_TAG:-local}}"
+USE_REGISTRY="${HYDRORAGE_USE_REGISTRY:-0}"
 
 cd "$ROOT_DIR"
 
@@ -20,6 +22,7 @@ POSTGRES_USER="${POSTGRES_USER:-hydrorage}"
 
 export IMAGE_TAG
 COMPOSE=(docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE")
+export COMPOSE_PARALLEL_LIMIT=1
 
 mkdir -p docker/nginx/conf.d
 sed 's/api_COLOR/api_blue/' docker/nginx/templates/upstream.conf.template \
@@ -39,14 +42,23 @@ for i in $(seq 1 40); do
   sleep 2
 done
 
-echo "==> Building images (first run can take several minutes)"
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue build api_blue web admin
+if [[ "$USE_REGISTRY" != "1" ]]; then
+  echo "==> Building images ONE AT A TIME (prefer GHCR / HYDRORAGE_USE_REGISTRY=1)"
+  for svc in api_blue web admin; do
+    echo "--- build: $svc"
+    nice -n 15 ionice -c2 -n7 \
+      env IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue build "$svc" || \
+      IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue build "$svc"
+  done
+else
+  echo "==> Using prebuilt images (no compose build)"
+fi
 
 echo "==> Migrate + seed"
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm --build migrate
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm --no-build migrate
 
 echo "==> Start api_blue + web + admin + nginx"
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue up -d api_blue web admin nginx
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue up -d --no-build api_blue web admin nginx
 
 echo blue >"$COLOR_FILE"
 echo "==> Bootstrap done. ACTIVE_COLOR=blue"

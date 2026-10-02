@@ -1,5 +1,9 @@
 name: Deploy
 
+# Build images on GitHub-hosted runners (NOT on the Hetzner VPS), push to GHCR,
+# then SSH only to pull + blue/green switch. Building on the VPS starves shared
+# nginx / other sites (502 on kiliccoffee, portfolio, dracord, TTEN).
+
 on:
   push:
     branches: [main]
@@ -9,10 +13,77 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/hydrorage
+
 jobs:
-  deploy:
+  build:
+    name: Build images (GHCR)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - service: api
+            dockerfile: apps/api/Dockerfile
+            build_args: ""
+          - service: web
+            dockerfile: apps/web/Dockerfile
+            build_args: |
+              VITE_API_URL=https://api.hydrorage.com.tr/api
+              VITE_ADMIN_URL=https://admin.hydrorage.com.tr
+              VITE_PLAUSIBLE_DOMAIN=hydrorage.com.tr
+          - service: admin
+            dockerfile: apps/admin/Dockerfile
+            build_args: |
+              VITE_API_URL=https://api.hydrorage.com.tr/api
+              VITE_LANDING_URL=https://hydrorage.com.tr
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+      image_prefix: ${{ env.IMAGE_PREFIX }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Image tag
+        id: meta
+        run: echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:latest
+          build-args: ${{ matrix.build_args }}
+          cache-from: type=gha,scope=hydrorage-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=hydrorage-${{ matrix.service }}
+          provenance: false
+
+  deploy:
+    name: Hetzner pull + roll
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     environment: production
     steps:
       - name: Deploy over SSH
@@ -22,8 +93,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: 22
-          command_timeout: 40m
-          # Do NOT use script_stop — it breaks if/test false branches (exit 1).
+          command_timeout: 20m
+          envs: IMAGE_TAG,IMAGE_PREFIX,GHCR_TOKEN,GHCR_USER
           script: |
             set -euo pipefail
             cd /opt/hydrorage
@@ -31,6 +102,17 @@ jobs:
             test -d .git || { echo "ERROR: not a git checkout"; exit 1; }
             git fetch --depth=1 origin main
             git reset --hard origin/main
-            sed -i 's/\r$//' deploy/gha-remote.sh || true
-            chmod +x deploy/gha-remote.sh || true
+            sed -i 's/\r$//' deploy/*.sh || true
+            chmod +x deploy/*.sh || true
+            if [[ -n "${GHCR_TOKEN:-}" ]]; then
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USER:-adorratm}" --password-stdin
+            fi
+            export IMAGE_TAG="${IMAGE_TAG}"
+            export HYDRORAGE_IMAGE_PREFIX="${IMAGE_PREFIX}"
+            export HYDRORAGE_USE_REGISTRY=1
             bash deploy/gha-remote.sh
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+          IMAGE_PREFIX: ${{ needs.build.outputs.image_prefix }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}

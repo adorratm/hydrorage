@@ -1,17 +1,13 @@
 # Production deploy (VPS + GitHub Actions + Cloudflare)
 
-## Nasıl çalışır? (GHCR yok)
+## Nasıl çalışır? (CI → GHCR → VPS pull)
 
-Eski alışkanlığına yakın akış:
+Paylaşımlı Hetzner VPS’te sibling siteleri korumak için:
 
 1. `main`’e push
-2. GitHub Actions sunucuya SSH açar
-3. `git pull` + **sunucuda** `docker compose build`
-4. Blue/green ile zero-downtime switch
-
-**Repo public** olması yeterli (git için).  
-**GHCR** (GitHub Container Registry) artık deploy için **gerekmiyor**.  
-(Repo public ≠ GHCR paket public; o yüzden önceki `denied` hatası oluşuyordu.)
+2. GitHub Actions **runner’da** api/web/admin image build eder → GHCR’a push
+3. SSH ile sunucuda **sadece** `docker pull` + blue/green switch (`HYDRORAGE_USE_REGISTRY=1`)
+4. VPS’te Next/Vite/Nest **build edilmez** (aksi halde diğer sitelerde 502)
 
 | Host | Service |
 |---|---|
@@ -46,7 +42,8 @@ Sadece bunlar:
 | `DEPLOY_USER` | SSH kullanıcı |
 | `DEPLOY_SSH_KEY` | Private key |
 
-`GHCR_TOKEN` / `GHCR_USERNAME` **gerekmez**.
+`GITHUB_TOKEN` (Actions) GHCR push/pull için yeterli (`packages: write`).  
+İlk GHCR push sonrası paketlerin visibility’sini org/repo ile hizalayın (private OK).
 
 ## Sunucu bootstrap (bir kez)
 
@@ -57,17 +54,22 @@ cp .env.prod.example .env
 # pgbouncer ini/userlist şifrelerini eşleştir
 
 chmod +x deploy/*.sh
-./deploy/bootstrap.sh local          # ilk build (uzun sürebilir)
-sudo ./deploy/install-host-nginx.sh  # sadece hydrorage vhost
+# Tercihen: ilk image’ları CI’den çekip bootstrap
+# export IMAGE_TAG=<sha> HYDRORAGE_USE_REGISTRY=1
+# bash deploy/pull-prebuilt.sh && bash deploy/bootstrap.sh "$IMAGE_TAG"
+# Acil lokal (diğer siteleri düşürebilir):
+./deploy/bootstrap.sh local
+bash deploy/install-into-edge-nginx.sh
 ```
 
-Sonraki deploy’lar: `main` push → Actions otomatik.
+Sonraki deploy’lar: `main` push → Actions otomatik (GHCR pull).
 
-Manuel:
+Manuel (registry):
 ```bash
-cd /opt/hydrorage && git pull && ./deploy/zero-downtime.sh local
+cd /opt/hydrorage && git pull
+export IMAGE_TAG=<sha> HYDRORAGE_USE_REGISTRY=1 HYDRORAGE_IMAGE_PREFIX=ghcr.io/<owner>/hydrorage
+bash deploy/gha-remote.sh
 ```
-
 ## Cloudflare
 
 `hydrorage.com.tr` / `api` / `admin` → aynı VPS, Proxy ON.  

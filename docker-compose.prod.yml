@@ -1,7 +1,8 @@
-# Production stack — builds on the VPS (no GHCR pull required).
+# Production stack — prefer CI→GHCR images (IMAGE_TAG=sha); VPS build is last resort.
 # Docker nginx binds ONLY to loopback (default 127.0.0.1:9080).
-# Host nginx keeps :80/:443 for other live sites.
-# Usage: docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Edge :80/:443 = ttengamesstudio-nginx (shared with sibling sites).
+# Usage (registry): IMAGE_TAG=<sha> docker compose -f docker-compose.prod.yml --env-file .env up -d --no-build
+# Usage (local last resort): IMAGE_TAG=local docker compose -f docker-compose.prod.yml --env-file .env build
 
 x-api-common: &api-common
   image: hydrorage-api:${IMAGE_TAG:-local}
