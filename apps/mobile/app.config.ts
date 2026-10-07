@@ -98,6 +98,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-web-browser',
     'expo-audio',
     'expo-updates',
+    '@react-native-google-signin/google-signin',
     [
       'expo-splash-screen',
       {

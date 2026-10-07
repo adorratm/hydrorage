@@ -1886,6 +1886,7 @@ __metadata:
     "@hydrorage/shared": "workspace:*"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/netinfo": "npm:^12.0.1"
+    "@react-native-google-signin/google-signin": "npm:^16.1.5"
     "@react-native/js-polyfills": "npm:0.87.1"
     "@tanstack/query-async-storage-persister": "npm:^5.104.1"
     "@tanstack/react-query": "npm:^5.104.1"
@@ -3018,6 +3019,20 @@ __metadata:
     react: "*"
     react-native: ">=0.59"
   checksum: 10c0/66c5fab04ef3ffe9b1f2e3578e7d3052a8c3ae327d94fa41f7d95ec4db3de4dd4017bf486013f031cb1aa12909002492474f259ea6212471f730cca39239dd35
+  languageName: node
+  linkType: hard
+
+"@react-native-google-signin/google-signin@npm:^16.1.5":
+  version: 16.1.5
+  resolution: "@react-native-google-signin/google-signin@npm:16.1.5"
+  peerDependencies:
+    expo: ">=52.0.40"
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 10c0/59fc1cdcdca2ae911db3acdc0d8629252d12ea9585afa1eb3264bf82bbb9ca00ebfbdb68591281fc91f5d7de09b5e3acdc05418230f0e3c2aa4ff65a6e605417
   languageName: node
   linkType: hard
 
