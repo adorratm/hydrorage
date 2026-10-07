@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'HydroRage',
   slug: 'hydrorage',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   // Linking tek şema ister. Google dönüşü bundle şemasıyla kalır (Info.plist).
