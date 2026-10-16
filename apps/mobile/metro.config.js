@@ -33,6 +33,7 @@ if (!nodeHasStorageFile) {
 }
 
 const { getDefaultConfig } = require('expo/metro-config');
+const fs = require('fs');
 const path = require('path');
 
 const projectRoot = __dirname;
@@ -49,10 +50,26 @@ config.resolver.disableHierarchicalLookup = true;
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules || {}),
 };
+
+const rnRoot = path.dirname(
+  require.resolve('react-native/package.json', { paths: [projectRoot, workspaceRoot] }),
+);
+const featureFlagsPath = path.join(
+  rnRoot,
+  'src/private/featureflags/ReactNativeFeatureFlags.js',
+);
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.startsWith('@/')) {
     const target = path.join(projectRoot, moduleName.slice(2));
     return context.resolveRequest(context, target, platform);
+  }
+  // RN 0.87 package exports omit this private path; virtualized-lists still imports it.
+  if (
+    moduleName === 'react-native/src/private/featureflags/ReactNativeFeatureFlags' &&
+    fs.existsSync(featureFlagsPath)
+  ) {
+    return { type: 'sourceFile', filePath: featureFlagsPath };
   }
   return context.resolveRequest(context, moduleName, platform);
 };

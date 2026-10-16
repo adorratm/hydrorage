@@ -8,9 +8,19 @@ const EAS_PROJECT_ID =
  * OAuth client ID'leri repo'da tutulmaz — apps/mobile/.env (gitignore).
  * Client ID'ler derlenmiş uygulamada yine görünür; asıl gizli olan CLIENT_SECRET
  * yalnızca API .env'de kalmalı.
+ *
+ * app.json içindeki react-native-google-mobile-ads yalnızca native Gradle içindir;
+ * Expo config’e taşınmaz.
  */
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
+export default ({ config }: ConfigContext): ExpoConfig => {
+  const {
+    // Native tooling key — not part of ExpoConfig
+    ['react-native-google-mobile-ads' as string]: _ads,
+    ...expoBase
+  } = config as ExpoConfig & Record<string, unknown>;
+
+  return {
+  ...expoBase,
   name: 'HydroRage',
   slug: 'hydrorage',
   version: '1.0.1',
@@ -134,9 +144,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-build-properties',
       {
-        ios: {
-          enableSceneSupport: true,
-        },
         android: {
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
@@ -161,4 +168,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       projectId: EAS_PROJECT_ID,
     },
   },
-});
+};
+};

@@ -45,7 +45,7 @@
     "node-forge": "portal:./.yarn/vendor/node-forge"
   },
   "volta": {
-    "node": "26.10.0",
+    "node": "26.12.0",
     "yarn": "4.18.1"
   },
   "packageManager": "yarn@4.18.1"

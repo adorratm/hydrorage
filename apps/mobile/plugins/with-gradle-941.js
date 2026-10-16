@@ -43,6 +43,24 @@ function withGradle941(config) {
         );
         fs.writeFileSync(appGradle, patched);
       }
+
+      // AGP 9 + current RN/Expo libs still need these until packages migrate.
+      const propsPath = path.join(root, 'gradle.properties');
+      if (fs.existsSync(propsPath)) {
+        let props = fs.readFileSync(propsPath, 'utf8');
+        const ensure = (key, value) => {
+          const re = new RegExp(`^${key.replace(/\./g, '\\.')}\\s*=.*$`, 'm');
+          if (re.test(props)) {
+            props = props.replace(re, `${key}=${value}`);
+          } else {
+            props = `${props.trimEnd()}\n${key}=${value}\n`;
+          }
+        };
+        ensure('android.builtInKotlin', 'false');
+        ensure('android.newDsl', 'false');
+        ensure('android.disallowKotlinSourceSets', 'false');
+        fs.writeFileSync(propsPath, props);
+      }
       return cfg;
     },
   ]);
