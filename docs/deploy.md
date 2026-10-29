@@ -15,7 +15,7 @@ Paylaşımlı Hetzner VPS’te sibling siteleri korumak için:
 | `https://admin.hydrorage.com.tr` | Admin |
 | `https://api.hydrorage.com.tr` | API |
 
-Node **26.10.0** · Yarn **4.18.1**.
+Node **26.13.0** · Yarn **4.18.1**.
 
 ## Shared VPS edge = `ttengamesstudio-nginx`
 
