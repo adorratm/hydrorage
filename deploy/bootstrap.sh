@@ -28,13 +28,8 @@ mkdir -p docker/nginx/conf.d
 sed 's/api_COLOR/api_blue/' docker/nginx/templates/upstream.conf.template \
   > docker/nginx/conf.d/upstream.conf
 
-echo "==> sync pgbouncer credentials from .env"
-bash deploy/sync-pgbouncer.sh
-
-echo "==> Starting postgres / pgbouncer / redis"
+echo "==> Starting postgres / redis"
 "${COMPOSE[@]}" up -d postgres redis
-# Recreate pgbouncer so auth_file / ini from sync are loaded (not a stale process).
-"${COMPOSE[@]}" up -d --force-recreate --no-deps pgbouncer
 
 echo "==> Waiting for postgres"
 for i in $(seq 1 40); do
@@ -43,6 +38,9 @@ for i in $(seq 1 40); do
   fi
   sleep 2
 done
+
+echo "==> sync postgres role + pgbouncer from .env"
+bash deploy/sync-db-auth.sh
 
 if [[ "$USE_REGISTRY" != "1" ]]; then
   echo "==> Building images ONE AT A TIME (prefer GHCR / HYDRORAGE_USE_REGISTRY=1)"
@@ -61,7 +59,7 @@ echo "==> Migrate + seed"
 IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile migrate run --rm migrate
 
 echo "==> Start api_blue + web + admin + nginx"
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue up -d --no-build api_blue web admin nginx
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" --profile blue up -d --no-build --force-recreate api_blue web admin nginx
 
 echo blue >"$COLOR_FILE"
 echo "==> Bootstrap done. ACTIVE_COLOR=blue"

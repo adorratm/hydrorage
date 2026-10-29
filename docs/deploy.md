@@ -51,7 +51,8 @@ Sadece bunlar:
 cd /opt/hydrorage   # git clone ile
 cp .env.prod.example .env
 # .env düzenle (POSTGRES_PASSWORD, JWT, …)
-# pgbouncer ini/userlist şifrelerini eşleştir
+# POSTGRES_PASSWORD == DATABASE_URL == DIRECT_URL şifreleri aynı olmalı
+# Deploy her seferinde: deploy/sync-db-auth.sh (ALTER USER + pgbouncer recreate)
 
 chmod +x deploy/*.sh
 # Tercihen: ilk image’ları CI’den çekip bootstrap
