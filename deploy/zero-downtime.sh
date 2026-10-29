@@ -90,11 +90,61 @@ mkdir -p docker/nginx/conf.d
 sed "s/api_COLOR/api_${NEW}/" docker/nginx/templates/upstream.conf.template \
   > docker/nginx/conf.d/upstream.conf
 
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" up -d --no-build --force-recreate web admin
-IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" up -d --no-build nginx
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" up -d --no-build --force-recreate --remove-orphans web admin
 
-NGINX_CID="$("${COMPOSE[@]}" ps -q nginx)"
-docker exec "$NGINX_CID" nginx -s reload
+echo "==> Waiting for web/admin running"
+for svc in web admin; do
+  for i in $(seq 1 40); do
+    CID="$("${COMPOSE[@]}" ps -q "$svc" || true)"
+    if [[ -n "$CID" ]]; then
+      ST="$(docker inspect --format='{{.State.Status}}' "$CID" 2>/dev/null || echo missing)"
+      if [[ "$ST" == "running" ]]; then
+        break
+      fi
+    else
+      ST="missing"
+    fi
+    if [[ "$i" -eq 40 ]]; then
+      echo "ERROR: $svc not running (last=$ST)" >&2
+      "${COMPOSE[@]}" logs --tail=40 "$svc" || true
+      exit 1
+    fi
+    sleep 1
+  done
+done
+
+# Force-recreate loads new upstream.conf; avoid flaky reload on a crash-looping container.
+IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" up -d --no-build --force-recreate --remove-orphans nginx
+
+echo "==> Waiting for nginx running"
+NGINX_CID=""
+for i in $(seq 1 45); do
+  NGINX_CID="$("${COMPOSE[@]}" ps -q nginx || true)"
+  if [[ -n "$NGINX_CID" ]]; then
+    ST="$(docker inspect --format='{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}' "$NGINX_CID" 2>/dev/null || echo missing)"
+    # Status must be running and not in Restarting (inspect Status stays "running" while RestartingCount climbs — check State.Restarting)
+    RESTARTING="$(docker inspect --format='{{.State.Restarting}}' "$NGINX_CID" 2>/dev/null || echo true)"
+    if [[ "$RESTARTING" == "false" ]]; then
+      RUNNING="$(docker inspect --format='{{.State.Running}}' "$NGINX_CID" 2>/dev/null || echo false)"
+      if [[ "$RUNNING" == "true" ]]; then
+        if docker exec "$NGINX_CID" nginx -t >/dev/null 2>&1; then
+          echo "nginx is up"
+          break
+        fi
+      fi
+    fi
+  else
+    ST="missing"
+    RESTARTING="true"
+  fi
+  if [[ "$i" -eq 45 ]]; then
+    echo "ERROR: nginx failed to stay up (state=$ST restarting=$RESTARTING)" >&2
+    "${COMPOSE[@]}" logs --tail=80 nginx || true
+    docker inspect "$NGINX_CID" --format='{{json .State}}' 2>/dev/null || true
+    exit 1
+  fi
+  sleep 1
+done
 
 echo "==> Stopping api_${OLD} (if running)"
 "${COMPOSE[@]}" --profile "$OLD" stop "api_${OLD}" 2>/dev/null || true

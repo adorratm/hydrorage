@@ -1,4 +1,5 @@
 # Written by deploy/zero-downtime.sh — do not edit by hand during deploy.
-upstream api_upstream {
-  server api_COLOR:3000;
+# map + variable proxy_pass → Docker DNS at request time (nginx starts even if api_* is mid-recreate).
+map $host $api_upstream_host {
+  default api_COLOR:3000;
 }
