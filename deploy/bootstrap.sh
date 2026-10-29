@@ -32,7 +32,9 @@ echo "==> sync pgbouncer credentials from .env"
 bash deploy/sync-pgbouncer.sh
 
 echo "==> Starting postgres / pgbouncer / redis"
-"${COMPOSE[@]}" up -d postgres pgbouncer redis
+"${COMPOSE[@]}" up -d postgres redis
+# Recreate pgbouncer so auth_file / ini from sync are loaded (not a stale process).
+"${COMPOSE[@]}" up -d --force-recreate --no-deps pgbouncer
 
 echo "==> Waiting for postgres"
 for i in $(seq 1 40); do
